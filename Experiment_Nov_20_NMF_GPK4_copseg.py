@@ -11,34 +11,39 @@ with different multitask GP configurations from the original code of KronSum
 
  """
 
-
+import math
 import sys
 import numpy as np
 import numpy.matlib
 import time
 import scipy as SP
-import scipy.io
+import os
+import torch
+import gpytorch
+from matplotlib import pyplot as plt
+
+import pathlib as Path
+
 from os import listdir
-from os.path import isfile, join
-project_path  = "/Users/apple/Desktop/Paper_Load_Profiling_NMF_V5/"
-sys.path.append(project_path+'Forecasting/') 
-#sys.path.append(project_path+'Forecasting/utils/') 
+
+
+from pathlib import Path
+ProjectPath = Path.cwd()
+utilsPath = Path.joinpath(ProjectPath,"utils")
+
+UTIL_DIR = utilsPath
+sys.path.append(
+    str(UTIL_DIR)
+)
+
+
+project_path  = "/Users/apple/Documents/GitHub/GPK-pytorch/"
 sys.path.append(project_path+'utils/')
-sys.path.append(project_path+'Forecasting/utils/') 
-sys.path.append('C:/Users/mahom/Documents/Python Scripts/UNM/utils')
-sys.path.append(project_path+'Forecasting/') 
-from sklearn.utils import shuffle
-from scipy.stats import multivariate_normal
-#from GuaranteePSD import GuaranteePSD
-#from EvaluateIntervalsMultivariate_V2 import EvaluateIntervalsMultivariate_V2
-#from EvaluateIntervalsMultivariate_c import EvaluateIntervalsMultivariate_c
 from EvaluateConfidenceIntervals import EvaluateConfidenceIntervals
 from StandarizeData import StandarizeData
 from DeStandarizeData import DeStandarizeData
-from MAPE import MAPE 
-from sklearn.metrics import r2_score
+from MAPE import MAPE
 from GP24I_v4 import GP24I
-
 from load_obj import load_obj
 from save_obj import save_obj
 from sklearn.metrics import r2_score
@@ -101,8 +106,6 @@ for archivo in range(len(onlyfiles)):
     SecCopy= DATA['RD']
     Var_Noise_NMF_val = SecCopy['OptValVar_F']
     Var_Noise_NMF_train = SecCopy['OptTrainVar_F']
-
-
 
     XTrain = DATA['X_Train_Val']    # F x N
     YTrain = DATA['Y_Train_Val']           

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="969f1b1a-37b5-4e59-9c1f-57fad355827c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/MTGPclasses.py" afterDir="false" />
+    <list default="true" id="969f1b1a-37b5-4e59-9c1f-57fad355827c" name="Changes" comment="Add module that includes Multi-task GPs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py" beforeDir="false" afterPath="$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +34,45 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="PyConsoleConfigurable.Python Console" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="GPK-pytorch" is-module-sdk="true">
+        <option name="myUseModuleSdk" value="true" />
+        <option name="myModuleName" value="GPK-pytorch" />
+      </console-settings>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="Experiment_Nov_20_NMF_GPK4_copseg" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="GPK-pytorch" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.Experiment_Nov_20_NMF_GPK4_copseg" />
+        <item itemvalue="Python.Experiment_Nov_20_NMF_GPK4_copseg" />
+        <item itemvalue="Python.Experiment_Nov_20_NMF_GPK4_copseg" />
+        <item itemvalue="Python.Experiment_Nov_20_NMF_GPK4_copseg" />
+        <item itemvalue="Python.Experiment_Nov_20_NMF_GPK4_copseg" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -44,8 +83,17 @@
       <option name="presentableId" value="Default" />
       <updated>1638998585746</updated>
       <workItem from="1638998588930" duration="6626000" />
-      <workItem from="1639420930470" duration="962000" />
+      <workItem from="1639420930470" duration="1068000" />
+      <workItem from="1639427457750" duration="5319000" />
     </task>
+    <task id="LOCAL-00001" summary="Add module that includes Multi-task GPs">
+      <created>1639427381058</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1639427381058</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -74,6 +122,10 @@
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Add module that includes Multi-task GPs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add module that includes Multi-task GPs" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
@@ -81,6 +133,31 @@
           <url>file://$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py</url>
           <line>13</line>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py</url>
+          <line>142</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py</url>
+          <line>101</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py</url>
+          <line>63</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py</url>
+          <line>74</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Experiment_Nov_20_NMF_GPK4_copseg.py</url>
+          <line>70</line>
+          <option name="timeStamp" value="7" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -14,16 +14,13 @@ with different multitask GP configurations from the original code of KronSum
 import math
 import sys
 import numpy as np
-import numpy.matlib
 import time
 import scipy as SP
 import os
 import torch
 import gpytorch
 from matplotlib import pyplot as plt
-
 import pathlib as Path
-
 from os import listdir
 
 
@@ -31,15 +28,16 @@ from pathlib import Path
 ProjectPath = Path.cwd()
 utilsPath = Path.joinpath(ProjectPath,"utils")
 
+
 UTIL_DIR = utilsPath
 sys.path.append(
     str(UTIL_DIR)
 )
 
 
-project_path  = "/Users/apple/Documents/GitHub/GPK-pytorch/"
-sys.path.append(project_path+'utils/')
-from EvaluateConfidenceIntervals import EvaluateConfidenceIntervals
+#project_path  = "C:\Users\mahom\Documents\GitHub\GPK-pytorch\"
+#ys.path.append(project_path+'utils\')
+import EvaluateConfidenceIntervals
 from StandarizeData import StandarizeData
 from DeStandarizeData import DeStandarizeData
 from MAPE import MAPE
@@ -47,7 +45,7 @@ from GP24I_v4 import GP24I
 from load_obj import load_obj
 from save_obj import save_obj
 from sklearn.metrics import r2_score
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel, DotProduct
+
 
 
 # #Load Power Load Data =========================================================
@@ -59,12 +57,12 @@ TaskNumber = 24
 Stand = True
 
 
-
 methodfile = 'NMF'
-datapath = project_path+"/Data/Exp_"+str(EXPERIMENT)+"/"+str(methodfile)+"/"
+datapath = Path.joinpath(ProjectPath,"Data","Exp_"+str(EXPERIMENT),str(methodfile))
+DATAPATH = str(datapath)
 #datapath = file_path = project_path +"Data/BuenosResNMF/"
 #onlyfiles = [f for f in listdir(datapath) if isfile(join(datapath, f))]
-onlyfiles = [f for f in listdir(datapath) if f.endswith('.pkl')]
+onlyfiles = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 
 
 
@@ -95,10 +93,12 @@ Alphas = [1e-6]
 for archivo in range(len(onlyfiles)):
     
     file_name = onlyfiles[archivo]
-    file_path = project_path +"Data/Exp_"+str(EXPERIMENT)+"/"+str(methodfile)+"/"+file_name
+    #file_path = project_path +"Data/Exp_"+str(EXPERIMENT)+"/"+str(methodfile)+"/"+file_name
+    file_path = Path.joinpath(datapath,file_name)
+    FILE_PATH = str(file_path)
     #file_path = project_path +"Data/BuenosResNMF/"+file_name
-    DATA = load_obj(file_path)  
-    print(file_path)
+    DATA = load_obj(FILE_PATH)
+    print(FILE_PATH)
     print(list(DATA))
     INFO = DATA['Info']
     INFO['Alphas'] = Alphas

@@ -1,11 +1,19 @@
+import torch
+import gpytorch
 class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
-    def __init__(self, train_x, train_y, likelihood):
+    def __init__(self, train_x, train_y, likelihood,num_task,kernel_type):
         super().__init__(train_x, train_y, likelihood)
-        self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([2]))
-        self.covar_module = gpytorch.kernels.ScaleKernel(
-            gpytorch.kernels.RBFKernel(batch_shape=torch.Size([2])),
-            batch_shape=torch.Size([2])
-        )
+        self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([num_task]))
+        if  kernel_type == 'RBF':
+            self.covar_module = gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.RBFKernel(batch_shape=torch.Size([num_task])),
+                batch_shape=torch.Size([num_task])
+            )
+        if  kernel_type == 'linear':
+            self.covar_module = gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.LinearKernel(batch_shape=torch.Size([num_task])),
+                batch_shape=torch.Size([num_task])
+            )
 
     def forward(self, x):
         mean_x = self.mean_module(x)

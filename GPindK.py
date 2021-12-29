@@ -11,6 +11,10 @@ import gpytorch
 from MTGPclasses import BatchIndependentMultitaskGPModel
 def GPindK(train_x,train_y,n_tasks):
     
+    
+    train_x= torch.from_numpy(train_x)
+    train_y= torch.from_numpy(train_y)
+    
     training_iterations = 50
     
     

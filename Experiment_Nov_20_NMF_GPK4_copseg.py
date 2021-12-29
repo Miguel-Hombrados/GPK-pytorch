@@ -44,6 +44,7 @@ from DeStandarizeData import DeStandarizeData
 from MAPE import MAPE
 from GP24I_v4 import GP24I
 from GPindK import GPindK
+from predGPK import predGPK
 from load_obj import load_obj
 from save_obj import save_obj
 from sklearn.metrics import r2_score
@@ -109,9 +110,9 @@ for archivo in range(len(onlyfiles)):
     Var_Noise_NMF_val = SecCopy['OptValVar_F']
     Var_Noise_NMF_train = SecCopy['OptTrainVar_F']
 
-    XTrain = DATA['X_Train_Val']    # F x N ### torch.from_numpy
+    XTrain = DATA['X_Train_Val'].T    # N x F ### torch.from_numpy
     YTrain = DATA['Y_Train_Val']           
-    XTest = DATA['X_Test']           # F x N           
+    XTest = DATA['X_Test'].T           # N x F           
     YTest = DATA['Y_Test']           # N x K             
     YTest_24 = DATA['Y_Test_24']     # N x T         
     YTrain_24 = DATA['Y_Train_Val_24']     
@@ -123,17 +124,17 @@ for archivo in range(len(onlyfiles)):
     YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
 
     
-    #WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
-    #WTrain = WtrainPP
-    #nn = 900
-    #YTrain24M  = YTrain_24[0:nn,:]
-    #YTrainstd24M  = YTrain_24_std[0:nn,:]
-    #XTrainM = XTrain[:,0:nn]
-    #YTrainM = YTrain[0:nn,:]
-    #XTrain  = XTrainM
-    #YTrain = YTrainM
-    #YTrain_24 = YTrain24M
-    #YTrain_24_std = YTrainstd24M
+    WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
+    WTrain = WtrainPP
+    nn = 100
+    YTrain24M  = YTrain_24[0:nn,:]
+    YTrainstd24M  = YTrain_24_std[0:nn,:]
+    XTrainM = XTrain[0:nn,:]
+    YTrainM = YTrain[0:nn,:]
+    XTrain  = XTrainM
+    YTrain = YTrainM
+    YTrain_24 = YTrain24M
+    YTrain_24_std = YTrainstd24M
     
     Ntrain = np.size(YTrain_24,0)
     YY =(WTrain@YTrain.T)
@@ -146,26 +147,24 @@ for archivo in range(len(onlyfiles)):
     #YTest  = YTest@Alpha
     
     if method == 'Full':
-        [XTrainS, YTrainS , XTestS, YTestS,scalerX, scalerY]=StandarizeData(XTrain.T,YTrain_24, XTest.T,YTest_24,Standarize = Stand)
+        [XTrainS, YTrainS , XTestS, YTestS,scalerX, scalerY]=StandarizeData(XTrain,YTrain_24, XTest,YTest_24,Standarize = Stand)
     else:
-        [XTrainS, YTrainS , XTestS, YTestS,scalerX, scalerY]=StandarizeData(XTrain.T,YTrain, XTest.T,YTest,Standarize = Stand)
- 
-
+        [XTrainS, YTrainS , XTestS, YTestS,scalerX, scalerY]=StandarizeData(XTrain,YTrain, XTest,YTest,Standarize = Stand)
     # 24GP================================================================
     start = time.time()
     [model_train,like_train] = GPindK(XTrainS,YTrainS,TaskNumber)
+    [YPredictedS_24gpS,VPredictedS_24gpS] = predGPK(XTestS,like_train,model_train)
     end = time.time() 
     training_test_time = end-start
     # ====================================================================
-
-
     if method == 'Full':
         [YTest, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTestS,YPredictedS_24gpS,scalerY,VPredictedS_24gpS,Standarize = Stand)
     else:   
         
-        #[YTest_K, YPredicted_24gp_K,CovPredicted_24gp_K]=DeStandarizeData(YTestS,YPredictedS_24gpS,scalerY,Covpredicted_Best,Standarize = Stand)
         [YTest_K, YPredicted_24gp_K,VPredicted_24gp_K]=DeStandarizeData(YTestS,YPredictedS_24gpS,scalerY,VPredictedS_24gpS,Standarize = Stand)
         [YTrain_K, YPredicted_24gp_K_tr,VPredicted_24gp_K_tr]=DeStandarizeData(YTrainS,YPredictedS_24gpS_tr,scalerY,VPredictedS_24gpS_tr,Standarize = Stand)
+        
+        
         VarK = np.var(YTest_K-YPredicted_24gp_K,axis=0)
         VarK_tr = np.var(YTrain_K-YPredicted_24gp_K_tr,axis=0)
         

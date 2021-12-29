@@ -14,6 +14,7 @@ with different multitask GP configurations from the original code of KronSum
 import math
 import sys
 import numpy as np
+import numpy.matlib
 import time
 import scipy as SP
 import os
@@ -22,7 +23,7 @@ import gpytorch
 from matplotlib import pyplot as plt
 import pathlib as Path
 from os import listdir
-
+import pandas as pd
 
 from pathlib import Path
 ProjectPath = Path.cwd()
@@ -42,6 +43,7 @@ from StandarizeData import StandarizeData
 from DeStandarizeData import DeStandarizeData
 from MAPE import MAPE
 from GP24I_v4 import GP24I
+from GPindK import GPindK
 from load_obj import load_obj
 from save_obj import save_obj
 from sklearn.metrics import r2_score
@@ -107,7 +109,7 @@ for archivo in range(len(onlyfiles)):
     Var_Noise_NMF_val = SecCopy['OptValVar_F']
     Var_Noise_NMF_train = SecCopy['OptTrainVar_F']
 
-    XTrain = DATA['X_Train_Val']    # F x N
+    XTrain = DATA['X_Train_Val']    # F x N ### torch.from_numpy
     YTrain = DATA['Y_Train_Val']           
     XTest = DATA['X_Test']           # F x N           
     YTest = DATA['Y_Test']           # N x K             
@@ -151,18 +153,11 @@ for archivo in range(len(onlyfiles)):
 
     # 24GP================================================================
     start = time.time()
-    #kernel =  C(1.0, (1e-5, 5))*RBF(10, (1e-6, 5)) + C(1.0, (1e-3, 5)) + WhiteKernel(noise_level=1, noise_level_bounds=(1e-10, 10))
-    #kernel =  C(10, (10, 200))*RBF(10, (10,200)) +C(1e-1, (1e-7, 10))  + WhiteKernel(noise_level=1e-3, noise_level_bounds=(1e-8, 1))
-    kernel =  C(10, (0.1, 200))*RBF(10, (10,200)) +C(1e-1, (1e-7, 10))  + WhiteKernel(noise_level=1e-3, noise_level_bounds=(1e-8, 1))
-    [YPredictedS_24gpS, VPredictedS_24gpS,model,Opt_alpha, IC1, IC2, Errors, R2s, MAPEs,VarsALL,Errors_train,R2strain,Error2Validation,ErrorValidation,NoiseParameters,YvalsOpt,Y_predValsOpt,Covpredicted_Best,training_time,val_time,test_time] = GP24I(XTrainS,YTrainS,XTestS,kernel,TaskNumber,Alphas)   
-    [YPredictedS_24gpS_tr, VPredictedS_24gpS_tr,model,Opt_alpha, IC1, IC2, Errors, R2s, MAPEs,VarsALL,Errors_train,R2strain,Error2Validation,ErrorValidation,NoiseParameters,YvalsOpt,Y_predValsOpt,_,_,_,_] = GP24I(XTrainS,YTrainS,XTrainS,kernel,TaskNumber,Alphas)   
-
+    [model_train,like_train] = GPindK(XTrainS,YTrainS,TaskNumber)
     end = time.time() 
     training_test_time = end-start
     # ====================================================================
-    for k in range(0,len(model)):
-       NoiseParametersTrain= model[k].kernel_.k2.noise_level
-    
+
 
     if method == 'Full':
         [YTest, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTestS,YPredictedS_24gpS,scalerY,VPredictedS_24gpS,Standarize = Stand)

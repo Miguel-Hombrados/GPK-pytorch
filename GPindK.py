@@ -9,7 +9,7 @@ Created on Mon Dec 20 19:05:02 2021
 import torch
 import gpytorch
 from MTGPclasses import BatchIndependentMultitaskGPModel
-def GPindK(train_x,train_y,n_tasks):
+def GPindK(train_x,train_y,n_tasks,kernel_type):
     
     
     train_x= torch.from_numpy(train_x)
@@ -18,8 +18,8 @@ def GPindK(train_x,train_y,n_tasks):
     training_iterations = 50
     
     
-    likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
-    model = BatchIndependentMultitaskGPModel(train_x, train_y, likelihood)
+    likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
+    model = BatchIndependentMultitaskGPModel(train_x, train_y, likelihood,n_tasks,kernel_type)
     
     # Find optimal model hyperparameters
     model.train()

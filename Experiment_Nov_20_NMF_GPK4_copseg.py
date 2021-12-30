@@ -45,6 +45,7 @@ from MAPE import MAPE
 from GP24I_v4 import GP24I
 from GPindK import GPindK
 from predGPK import predGPK
+from predGPMTind import predGPMTind
 from load_obj import load_obj
 from save_obj import save_obj
 from sklearn.metrics import r2_score
@@ -55,6 +56,7 @@ from sklearn.metrics import r2_score
 # #==============================================================================
 method = "NMF"  # Full
 methodGP = 'GPt24'
+kernel_type = "rbf"
 EXPERIMENT = 6
 TaskNumber = 24
 Stand = True
@@ -145,61 +147,62 @@ for archivo in range(len(onlyfiles)):
     Alpha = SP.linalg.sqrtm(PrecisionH)
     #YTrain = YTrain@Alpha
     #YTest  = YTest@Alpha
+  
     
-    if method == 'Full':
-        [XTrainS, YTrainS , XTestS, YTestS,scalerX, scalerY]=StandarizeData(XTrain,YTrain_24, XTest,YTest_24,Standarize = Stand)
-    else:
-        [XTrainS, YTrainS , XTestS, YTestS,scalerX, scalerY]=StandarizeData(XTrain,YTrain, XTest,YTest,Standarize = Stand)
+    [XTrain_S, YTrain_24_S , XTest_S, YTest_24_S,scalerX, scalerY_24]=StandarizeData(XTrain,YTrain_24, XTest,YTest_24,Standarize = Stand)
     # 24GP================================================================
-    start = time.time()
-    [model_train,like_train] = GPindK(XTrainS,YTrainS,TaskNumber)
-    [YPredictedS_24gpS,VPredictedS_24gpS] = predGPK(XTestS,like_train,model_train)
-    end = time.time() 
-    training_test_time = end-start
-    # ====================================================================
-    if method == 'Full':
-        [YTest, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTestS,YPredictedS_24gpS,scalerY,VPredictedS_24gpS,Standarize = Stand)
-    else:   
-        
-        [YTest_K, YPredicted_24gp_K,VPredicted_24gp_K]=DeStandarizeData(YTestS,YPredictedS_24gpS,scalerY,VPredictedS_24gpS,Standarize = Stand)
-        [YTrain_K, YPredicted_24gp_K_tr,VPredicted_24gp_K_tr]=DeStandarizeData(YTrainS,YPredictedS_24gpS_tr,scalerY,VPredictedS_24gpS_tr,Standarize = Stand)
-        
-        
-        VarK = np.var(YTest_K-YPredicted_24gp_K,axis=0)
-        VarK_tr = np.var(YTrain_K-YPredicted_24gp_K_tr,axis=0)
-        
-         
-        [ICS1_24gp0,ICS2_24gp0] = EvaluateConfidenceIntervals(YTest_K,YPredicted_24gp_K,VPredicted_24gp_K)  
-        [ICS1_24gp0_tr,ICS2_24gp0_tr] = EvaluateConfidenceIntervals(YTrain_K,YPredicted_24gp_K_tr,VPredicted_24gp_K_tr) 
+    start_ind = time.time()
+    [model_train_24ind,like_train_24ind] = GPindK(XTrain_S,YTrain_24_S,TaskNumber,kernel_type)
+    end_ind = time.time() 
+    training_time_ind = end_ind-start_ind
+    
+    start_ind = time.time()
+    [YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPMTind(XTest_S,like_train_24ind,model_train_24ind)
+    end_ind = time.time() 
+    testing_time_ind = end_ind-start_ind
+
+    
+    #[YPredictedS_24gpS,VPredictedS_24gpS] = predGPK(XTestS,like_train,model_train)
+    # ====================================================================  
+    [_, YPredicted_24gp_ind,VPredicted_24gp_ind]=DeStandarizeData(YTest_24_S,YPredicted_24gp_ind_S,scalerY_24,VPredicted_24gp_ind_S,Standarize = Stand)
+    
+    [ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_ind,VPredicted_24gp_ind)     
+   
+    #VarK = np.var(YTest_K-YPredicted_24gp_K,axis=0)
+    #VarK_tr = np.var(YTrain_K-YPredicted_24gp_K_tr,axis=0)
+    
+     
+    #[ICS1_24gp0,ICS2_24gp0] = EvaluateConfidenceIntervals(YTest_K,YPredicted_24gp_K,VPredicted_24gp_K)  
+    #[ICS1_24gp0_tr,ICS2_24gp0_tr] = EvaluateConfidenceIntervals(YTrain_K,YPredicted_24gp_K_tr,VPredicted_24gp_K_tr) 
         ## CONTINUAR AQUI!!!!!!!
     #[ICS1_24gp0,ICS2_24gp0] = EvaluateConfidenceIntervals(YTest_K,YPredicted_24gp_K,VPredicted_24gp_K) 
 
-    Ntest = np.size(YPredicted_24gp_K,0)
-    Ntrain = np.size(YPredicted_24gp_K_tr,0)
-    YTest_24_std = YTest_K@WTrain.T 
-    YPredicted_24gp_std = YPredicted_24gp_K@WTrain.T
+    #Ntest = np.size(YPredicted_24gp_K,0)
+    #Ntrain = np.size(YPredicted_24gp_K_tr,0)
+    #YTest_24_std = YTest_K@WTrain.T 
+    #YPredicted_24gp_std = YPredicted_24gp_K@WTrain.T
 
-    YPredicted_24gp_std_tr = np.matmul(YPredicted_24gp_K_tr,WTrain.T)
-    Etrain = YTrain_24_std-YPredicted_24gp_std_tr
-    NoiseEstimation = np.diag(np.var(Etrain,axis=0)) 
+    #YPredicted_24gp_std_tr = np.matmul(YPredicted_24gp_K_tr,WTrain.T)
+    #Etrain = YTrain_24_std-YPredicted_24gp_std_tr
+    #NoiseEstimation = np.diag(np.var(Etrain,axis=0)) 
 
-    SigInv = np.linalg.inv(WTrain.T@WTrain)
-    A = SP.linalg.sqrtm(SigInv)
-    Vtr = np.diagonal(WTrain@(A@np.diag(VarK_tr)@A.T)@WTrain.T).reshape(-1,1)
-    Vtr2 = np.diagonal(WTrain@(A@np.diag(np.mean(VPredicted_24gp_K,0))@A.T)@WTrain.T).reshape(-1,1)
-    NMFError = np.diag(NoiseEstimation).ravel() - Vtr.ravel()
-    NMFError_2 = np.diag(NoiseEstimation).ravel() -Vtr2.ravel()
+    #SigInv = np.linalg.inv(WTrain.T@WTrain)
+    #A = SP.linalg.sqrtm(SigInv)
+    #Vtr = np.diagonal(WTrain@(A@np.diag(VarK_tr)@A.T)@WTrain.T).reshape(-1,1)
+    #Vtr2 = np.diagonal(WTrain@(A@np.diag(np.mean(VPredicted_24gp_K,0))@A.T)@WTrain.T).reshape(-1,1)
+    #NMFError = np.diag(NoiseEstimation).ravel() - Vtr.ravel()
+    #NMFError_2 = np.diag(NoiseEstimation).ravel() -Vtr2.ravel()
 
 
-    Wp = np.linalg.inv(WTrain.T@WTrain)@WTrain.T
-    Wpp = np.linalg.inv(Wp.T@Wp)@Wp.T
-    VPredicted_24gp = np.zeros((Ntest,24))
-    VPredicted_24gp_2 = np.zeros((Ntest,24))
-    VPredicted_24gp_3 = np.zeros((Ntest,24))
-    VPredicted_24gp_tr = np.zeros((Ntrain,24))
-    VpreMat = np.zeros((Ntest,24))
-    VpreMat_tr = np.zeros((Ntrain,24))
-    VpreMat_2 = np.zeros((Ntest,24))
+    #Wp = np.linalg.inv(WTrain.T@WTrain)@WTrain.T
+    #Wpp = np.linalg.inv(Wp.T@Wp)@Wp.T
+    #VPredicted_24gp = np.zeros((Ntest,24))
+    #VPredicted_24gp_2 = np.zeros((Ntest,24))
+    #VPredicted_24gp_3 = np.zeros((Ntest,24))
+    #VPredicted_24gp_tr = np.zeros((Ntrain,24))
+    #VpreMat = np.zeros((Ntest,24))
+    #VpreMat_tr = np.zeros((Ntrain,24))
+    #VpreMat_2 = np.zeros((Ntest,24))
 
 
     for ss in range(0,Ntest):

@@ -38,18 +38,19 @@ sys.path.append(
 
 #project_path  = "C:\Users\mahom\Documents\GitHub\GPK-pytorch\"
 #ys.path.append(project_path+'utils\')
-import EvaluateConfidenceIntervals
+from EvaluateConfidenceIntervals import EvaluateConfidenceIntervals
 from StandarizeData import StandarizeData
 from DeStandarizeData import DeStandarizeData
 from MAPE import MAPE
 from GP24I_v4 import GP24I
-from GPindK import GPindK
+from GPind import GPind
 from predGPK import predGPK
-from predGPMTind import predGPMTind
+from GPKtorch import GPKtorch
+from predGPind import predGPind
 from load_obj import load_obj
 from save_obj import save_obj
 from sklearn.metrics import r2_score
-
+from data_to_torch import data_to_torch
 
 
 # #Load Power Load Data =========================================================
@@ -103,6 +104,7 @@ for archivo in range(len(onlyfiles)):
     FILE_PATH = str(file_path)
     #file_path = project_path +"Data/BuenosResNMF/"+file_name
     DATA = load_obj(FILE_PATH)
+    #DATA = data_to_torch(DATA)
     print(FILE_PATH)
     print(list(DATA))
     INFO = DATA['Info']
@@ -124,6 +126,9 @@ for archivo in range(len(onlyfiles)):
     Ntest = np.size(YTest_24,0)
     Ntrain = np.size(YTrain_24,0)
     YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
+    
+    
+
 
     
     WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
@@ -150,23 +155,36 @@ for archivo in range(len(onlyfiles)):
   
     
     [XTrain_S, YTrain_24_S , XTest_S, YTest_24_S,scalerX, scalerY_24]=StandarizeData(XTrain,YTrain_24, XTest,YTest_24,Standarize = Stand)
+    [XTrain_S, YTrain_K_S , XTest_S, YTest_K_S,scalerX, scalerY_K]=StandarizeData(XTrain,YTrain, XTest,YTest,Standarize = Stand)
     # 24GP================================================================
     start_ind = time.time()
-    [model_train_24ind,like_train_24ind] = GPindK(XTrain_S,YTrain_24_S,TaskNumber,kernel_type)
+    [model_train_24ind,like_train_24ind] = GPind(XTrain_S,YTrain_24_S,24,kernel_type)
     end_ind = time.time() 
     training_time_ind = end_ind-start_ind
     
     start_ind = time.time()
-    [YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPMTind(XTest_S,like_train_24ind,model_train_24ind)
+    [YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind(XTest_S,like_train_24ind,model_train_24ind)
     end_ind = time.time() 
     testing_time_ind = end_ind-start_ind
-
     
-    #[YPredictedS_24gpS,VPredictedS_24gpS] = predGPK(XTestS,like_train,model_train)
+    # 24GPKind================================================================
+    start_gpk_ind = time.time()
+    [model_train_24gpk_ind,like_train_24gpk_ind] = GPKtorch(XTrain_S,YTrain_K_S,TaskNumber,kernel_type,"ind")
+    end_gpk_ind = time.time() 
+    training_time_mtgp = end_gpk_ind-start_gpk_ind
+    
+    start_gpk_ind = time.time()
+    [YPredicted_Kgp_gpk_ind_S,VPredicted_Kgp_gpk_ind_S] = predGPind(XTest_S,like_train_24gpk_ind,model_train_24gpk_ind)
+    [_, YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind]=DeStandarizeData(YTest_K_S,YPredicted_Kgp_gpk_ind_S,scalerY_K,VPredicted_Kgp_gpk_ind_S,Standarize = Stand)
+    [YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind] = predGPK(YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind,WTrain,Stds_train_load = Stds_train_load)
+    end_gpk_ind = time.time() 
+    testing_time_mtgp = end_gpk_ind-start_gpk_ind
     # ====================================================================  
     [_, YPredicted_24gp_ind,VPredicted_24gp_ind]=DeStandarizeData(YTest_24_S,YPredicted_24gp_ind_S,scalerY_24,VPredicted_24gp_ind_S,Standarize = Stand)
-    
-    [ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_ind,VPredicted_24gp_ind)     
+ 
+   
+    [ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_ind,VPredicted_24gp_ind)   
+    [ICS1_24gp_gpk_ind,ICS2_24gp_gpk_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind) 
    
     #VarK = np.var(YTest_K-YPredicted_24gp_K,axis=0)
     #VarK_tr = np.var(YTrain_K-YPredicted_24gp_K_tr,axis=0)

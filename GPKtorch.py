@@ -8,19 +8,20 @@ Created on Wed Dec 29 10:05:03 2021
 
 import torch
 import gpytorch
-from GPindK import GPindK
-
-def GPKtorch(train_x,train_y,n_tasks,Wtrain_s,option_lv):
+from GPind import GPind
+from GPMT import GPMT
+from to_torch import to_torch
+def GPKtorch(train_x,train_y,n_tasks,kernel_type,option_lv):
     
     
-    train_x = torch.from_numpy(train_x)
-    train_y = torch.from_numpy(train_y)
+    train_x = to_torch(train_x)
+    train_y = to_torch(train_y)
     
-    training_iterations = 50
-    
-   
     
     if option_lv == "ind":
-        [model,likelihood] = GPindK(train_x,train_y,n_tasks)
+        [model,likelihood] = GPind(train_x,train_y,n_tasks,kernel_type)
         
     if option_lv == "mt":
+        [model,likelihood] = GPMT(train_x,train_y,n_tasks,kernel_type,option_lv)
+
+    return model, likelihood

@@ -4,16 +4,16 @@ class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood,num_task,kernel_type):
         super().__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([num_task]))
-        if  kernel_type == 'RBF':
-            self.covar_module = gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.RBFKernel(batch_shape=torch.Size([num_task])),
-                batch_shape=torch.Size([num_task])
-            )
+        
+        if  kernel_type == 'rbf':
+            kernel_cov =  gpytorch.kernels.RBFKernel(batch_shape=torch.Size([num_task]))
         if  kernel_type == 'linear':
-            self.covar_module = gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.LinearKernel(batch_shape=torch.Size([num_task])),
-                batch_shape=torch.Size([num_task])
-            )
+            kernel_cov =  gpytorch.kernels.LinearKernel(batch_shape=torch.Size([num_task]))
+          
+        self.covar_module = gpytorch.kernels.ScaleKernel(kernel_cov,
+            batch_shape=torch.Size([num_task])
+        )
+
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -23,13 +23,19 @@ class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
         )  
 
 class MultitaskGPModel(gpytorch.models.ExactGP):
-    def __init__(self, train_x, train_y, likelihood):
+    def __init__(self, train_x, train_y, likelihood,num_task,kernel_type,option_lv):
         super(MultitaskGPModel, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.MultitaskMean(
-            gpytorch.means.ConstantMean(), num_tasks=2
+            gpytorch.means.ConstantMean(), num_tasks=num_task
         )
+        
+        if  kernel_type == 'rbf':
+            kernel_cov =  gpytorch.kernels.RBFKernel(batch_shape=torch.Size([num_task]))
+        if  kernel_type == 'linear':
+            kernel_cov =  gpytorch.kernels.LinearKernel(batch_shape=torch.Size([num_task]))
+        
         self.covar_module = gpytorch.kernels.MultitaskKernel(
-            gpytorch.kernels.RBFKernel(), num_tasks=2, rank=1
+            kernel_cov, num_tasks=num_task, rank=1
         )
 
     def forward(self, x):

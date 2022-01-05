@@ -9,10 +9,13 @@ v2: This version returns also the scalerX and scalerY
 """
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from to_torch import to_torch
 def StandarizeData(XTrain,YTrain,XTest,YTest,Standarize = False):
     """
     X : n_samples x n_features
     Y : n_samples x n_tasks
+    
+    v 4.0: return torch tensors type.
     """
     
     if np.size(np.shape(XTest)) == 1:
@@ -44,4 +47,4 @@ def StandarizeData(XTrain,YTrain,XTest,YTest,Standarize = False):
         scalerX=0
         scalerY=0
         
-    return XTrainS, YTrainS , XTestS, YTestS, scalerX, scalerY
+    return to_torch(XTrainS), to_torch(YTrainS) , to_torch(XTestS), to_torch(YTestS), scalerX, scalerY

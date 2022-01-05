@@ -5,7 +5,7 @@ Created on Mon May 25 17:19:42 2020
 
 @author: Miguel A Hombrados
 """
-import numpy as np
+import torch
 def EvaluateConfidenceIntervals(YTest,YPredicted,VPredicted):
     """
     YTest : array (n_samples , n_task)
@@ -15,29 +15,30 @@ def EvaluateConfidenceIntervals(YTest,YPredicted,VPredicted):
     Returns: Intervals1Std and Intervals2Std a vector of size n_task, containing 
              the % of samples that fall within 1 or 2 Std's distance from the 
              prediction. 
-        
+             
+    Torch version    
     """
-    if np.size(np.shape(YTest))==1:
+    if  len(YTest.shape)==1:
         YTest = YTest.reshape(-1,1)
         YPredicted = YPredicted.reshape(-1,1)
-    if np.size(np.shape(VPredicted))==1:  
+    if  len(VPredicted.shape)==1:
         VPredicted = VPredicted.reshape(-1,1)
         
-    n_tasks = np.size(YTest,1)
-    n_samples = np.size(YTest,0)
-    Intervals1Std= np.zeros((n_tasks,1))
-    Intervals2Std= np.zeros((n_tasks,1))
+    n_tasks = torch.Tensor.size(YTest,1)
+    n_samples = torch.Tensor.size(YTest,0)
+    Intervals1Std= torch.zeros((n_tasks,1))
+    Intervals2Std= torch.zeros((n_tasks,1))
     
     
-    if VPredicted.shape == (n_samples, n_tasks):
-            SP = np.sqrt(VPredicted)
-    if VPredicted.shape == (n_samples*n_tasks , n_samples*n_tasks):
-            SP = np.sqrt(np.diagonal(VPredicted).reshape(n_tasks,n_samples).T)  # REVIEW THIS !!
+    if VPredicted.shape == torch.Size([n_samples, n_tasks]):
+            SP = torch.sqrt(VPredicted)
+    if VPredicted.shape == torch.Size([n_samples*n_tasks , n_samples*n_tasks]):
+            SP = torch.sqrt(torch.diagonal(VPredicted).reshape(n_tasks,n_samples).T)  # REVIEW THIS !!
     
     for t in range(0,n_tasks):
-         Yt = np.matrix(YTest[:,t]).reshape(-1,1)
-         Yp = np.matrix(YPredicted[:,t]).reshape(-1,1)
-         SSp = np.matrix(SP[:,t]).reshape(-1,1)
+         Yt = YTest[:,t].reshape(-1,1)
+         Yp = YPredicted[:,t].reshape(-1,1)
+         SSp = SP[:,t].reshape(-1,1)
           # The transposes and the matrix transformations are
           # done in order to guarantee that the shape is n_samples x n_task
           

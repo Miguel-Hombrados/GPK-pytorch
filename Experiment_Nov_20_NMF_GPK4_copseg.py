@@ -66,7 +66,8 @@ Stand = True
 methodfile = 'NMF'
 datapath = Path.joinpath(ProjectPath,"Data","Exp_"+str(EXPERIMENT),str(methodfile))
 DATAPATH = str(datapath)
-#datapath = file_path = project_path +"Data/BuenosResNMF/"
+datapath = Path.joinpath(ProjectPath,"Data","BuenosResNMF")
+DATAPATH = str(datapath)
 #onlyfiles = [f for f in listdir(datapath) if isfile(join(datapath, f))]
 onlyfiles = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 
@@ -104,15 +105,16 @@ for archivo in range(len(onlyfiles)):
     FILE_PATH = str(file_path)
     #file_path = project_path +"Data/BuenosResNMF/"+file_name
     DATA = load_obj(FILE_PATH)
-    #DATA = data_to_torch(DATA)
+    DATA = data_to_torch(DATA)
     print(FILE_PATH)
     print(list(DATA))
-    INFO = DATA['Info']
-    INFO['Alphas'] = Alphas
-    INFO['stdGP'] = Stand
-    SecCopy= DATA['RD']
-    Var_Noise_NMF_val = SecCopy['OptValVar_F']
-    Var_Noise_NMF_train = SecCopy['OptTrainVar_F']
+    
+    #INFO = DATA['Info']
+    #INFO['Alphas'] = Alphas
+    #INFO['stdGP'] = Stand
+    #SecCopy= DATA['RD']
+    #Var_Noise_NMF_val = SecCopy['OptValVar_F']
+    #Var_Noise_NMF_train = SecCopy['OptTrainVar_F']
 
     XTrain = DATA['X_Train_Val'].T    # N x F ### torch.from_numpy
     YTrain = DATA['Y_Train_Val']           
@@ -126,27 +128,24 @@ for archivo in range(len(onlyfiles)):
     Ntest = np.size(YTest_24,0)
     Ntrain = np.size(YTrain_24,0)
     YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
-    
-    
-
 
     
-    WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
-    WTrain = WtrainPP
-    nn = 100
-    YTrain24M  = YTrain_24[0:nn,:]
-    YTrainstd24M  = YTrain_24_std[0:nn,:]
-    XTrainM = XTrain[0:nn,:]
-    YTrainM = YTrain[0:nn,:]
-    XTrain  = XTrainM
-    YTrain = YTrainM
-    YTrain_24 = YTrain24M
-    YTrain_24_std = YTrainstd24M
+    # WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
+    # WTrain = WtrainPP
+    # nn = 100
+    # YTrain24M  = YTrain_24[0:nn,:]
+    # YTrainstd24M  = YTrain_24_std[0:nn,:]
+    # XTrainM = XTrain[0:nn,:]
+    # YTrainM = YTrain[0:nn,:]
+    # XTrain  = XTrainM
+    # YTrain = YTrainM
+    # YTrain_24 = YTrain24M
+    # YTrain_24_std = YTrainstd24M
     
     Ntrain = np.size(YTrain_24,0)
     YY =(WTrain@YTrain.T)
     E = np.divide(YTrain_24.T,np.matlib.repmat(Stds_train_load,1,Ntrain))-YY
-    Var_noise_train_est = np.var(E,axis =1)
+    #Var_noise_train_est = np.var(E,axis =1)
     
     PrecisionH = WTrain.T@WTrain
     Alpha = SP.linalg.sqrtm(PrecisionH)
@@ -166,7 +165,7 @@ for archivo in range(len(onlyfiles)):
     [YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind(XTest_S,like_train_24ind,model_train_24ind)
     end_ind = time.time() 
     testing_time_ind = end_ind-start_ind
-    
+    [_, YPredicted_24gp_ind,VPredicted_24gp_ind]=DeStandarizeData(YTest_24_S,YPredicted_24gp_ind_S,scalerY_24,VPredicted_24gp_ind_S,Standarize = Stand)
     # 24GPKind================================================================
     start_gpk_ind = time.time()
     [model_train_24gpk_ind,like_train_24gpk_ind] = GPKtorch(XTrain_S,YTrain_K_S,TaskNumber,kernel_type,"ind")
@@ -177,14 +176,29 @@ for archivo in range(len(onlyfiles)):
     [YPredicted_Kgp_gpk_ind_S,VPredicted_Kgp_gpk_ind_S] = predGPind(XTest_S,like_train_24gpk_ind,model_train_24gpk_ind)
     [_, YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind]=DeStandarizeData(YTest_K_S,YPredicted_Kgp_gpk_ind_S,scalerY_K,VPredicted_Kgp_gpk_ind_S,Standarize = Stand)
     [YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind] = predGPK(YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind,WTrain,Stds_train_load = Stds_train_load)
+    ## Estimation of the validation error in NMF
+    YTrain_24_est = (WTrain@YTrain.T).T
+    Etrain = YTrain_24_est - YTrain_24
+    ##=========================================
     end_gpk_ind = time.time() 
     testing_time_mtgp = end_gpk_ind-start_gpk_ind
     # ====================================================================  
-    [_, YPredicted_24gp_ind,VPredicted_24gp_ind]=DeStandarizeData(YTest_24_S,YPredicted_24gp_ind_S,scalerY_24,VPredicted_24gp_ind_S,Standarize = Stand)
+
  
    
     [ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_ind,VPredicted_24gp_ind)   
+
     [ICS1_24gp_gpk_ind,ICS2_24gp_gpk_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind) 
+    
+    
+    mm_24gp_ind = MAPE(YTest_24,YPredicted_24gp_ind)
+    mapemedio_24gp_ind = torch.mean(mm_24gp_ind)
+    
+    mm_24gp_gpk_ind = MAPE(YTest_24,YPredicted_24gp_gpk_ind)
+    mapemedio_24gp_gpk_ind = torch.mean(mm_24gp_gpk_ind)
+    
+    
+    print("done")
    
     #VarK = np.var(YTest_K-YPredicted_24gp_K,axis=0)
     #VarK_tr = np.var(YTrain_K-YPredicted_24gp_K_tr,axis=0)
@@ -223,23 +237,20 @@ for archivo in range(len(onlyfiles)):
     #VpreMat_2 = np.zeros((Ntest,24))
 
 
-    for ss in range(0,Ntest):
-        VpreMat[ss,:] =  np.diagonal(WTrain@(A@np.diag(VPredicted_24gp_K[ss,:])@A.T)@WTrain.T)
-        VpreMat_tr[ss,:] =  np.diagonal(WTrain@(A@np.diag(VPredicted_24gp_K_tr[ss,:])@A.T)@WTrain.T)
+    # for ss in range(0,Ntest):
+    #     VpreMat[ss,:] =  np.diagonal(WTrain@(A@np.diag(VPredicted_24gp_K[ss,:])@A.T)@WTrain.T)
+    #     VpreMat_tr[ss,:] =  np.diagonal(WTrain@(A@np.diag(VPredicted_24gp_K_tr[ss,:])@A.T)@WTrain.T)
         
-        VPredicted_24gp[ss,:] = (np.power(Stds_train_load,2)*(VpreMat[ss,:].reshape(-1,1)  + Var_Noise_NMF_val)).T
-        VPredicted_24gp_3[ss,:] = (np.power(Stds_train_load,2)*(VpreMat[ss,:].reshape(-1,1)  + NMFError_2.reshape(-1,1))).T
-        VPredicted_24gp_tr[ss,:] = (np.power(Stds_train_load,2)*(VpreMat_tr[ss,:].reshape(-1,1)  + Var_Noise_NMF_train)).T
-        #VPredicted_24gp[ss,:] = (np.power(Stds_train_load,2)*(NoiseEstimation[ss,:].reshape(-1,1))).T
-    YPredicted_24gp = np.matlib.repmat(Stds_train_load,1,Ntest).T* YPredicted_24gp_std
-    YPredicted_24gp_tr = np.matlib.repmat(Stds_train_load,1,Ntrain).T* YPredicted_24gp_std_tr
+    #     VPredicted_24gp[ss,:] = (np.power(Stds_train_load,2)*(VpreMat[ss,:].reshape(-1,1)  + Var_Noise_NMF_val)).T
+    #     VPredicted_24gp_3[ss,:] = (np.power(Stds_train_load,2)*(VpreMat[ss,:].reshape(-1,1)  + NMFError_2.reshape(-1,1))).T
+    #     VPredicted_24gp_tr[ss,:] = (np.power(Stds_train_load,2)*(VpreMat_tr[ss,:].reshape(-1,1)  + Var_Noise_NMF_train)).T
+    #     #VPredicted_24gp[ss,:] = (np.power(Stds_train_load,2)*(NoiseEstimation[ss,:].reshape(-1,1))).T
+    # YPredicted_24gp = np.matlib.repmat(Stds_train_load,1,Ntest).T* YPredicted_24gp_std
+    # YPredicted_24gp_tr = np.matlib.repmat(Stds_train_load,1,Ntrain).T* YPredicted_24gp_std_tr
 
-    VPredicted_24gpOPT = np.power(Stds_train_load,2).reshape(1,-1)*np.matlib.repmat(np.diag(NoiseEstimation).reshape(1,-1),Ntest,1)
+    # VPredicted_24gpOPT = np.power(Stds_train_load,2).reshape(1,-1)*np.matlib.repmat(np.diag(NoiseEstimation).reshape(1,-1),Ntest,1)
 
 
-    [ICS1_24gp,ICS2_24gp] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp,VPredicted_24gp) 
-    
-    [ICS1_24gp_2,ICS2_24gp_2] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp,VPredicted_24gp_2) 
     
     [ICS1_24gp_3,ICS2_24gp_3] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp,VPredicted_24gp_3)
     

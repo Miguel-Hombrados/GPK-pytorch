@@ -29,7 +29,7 @@ def EvaluateConfidenceIntervals(YTest,YPredicted,VPredicted):
     Intervals2Std= np.zeros((n_tasks,1))
     
     
-    if VPredicted.shape == (n_samples, n_tasks):
+    if VPredicted.shape == torch.Size([n_samples, n_tasks]):
             SP = np.sqrt(VPredicted)
     if VPredicted.shape == (n_samples*n_tasks , n_samples*n_tasks):
             SP = np.sqrt(np.diagonal(VPredicted).reshape(n_tasks,n_samples).T)  # REVIEW THIS !!

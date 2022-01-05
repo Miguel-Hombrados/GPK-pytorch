@@ -25,7 +25,7 @@ def predGPK(mean_k,var_covar_k,Wtrain_s,**kwargs):
     if(Stds_train_load is None):
         Wtrain = Wtrain_s
     
-    mean = Wtrain@mean_k.T                    # F x N
+    mean = mean_k@Wtrain.T                  # F x N
 
     std = torch.zeros(Nt,F)
     if var_covar_k.shape == torch.Size([Nt,K]):     # N x K

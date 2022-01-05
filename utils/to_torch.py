@@ -12,5 +12,5 @@ def to_torch(x):
     if isinstance(x, (np.ndarray, np.generic) ):
         y= torch.from_numpy(x).float()
     else:
-        y=x.double()
+        y=x.float()
     return y

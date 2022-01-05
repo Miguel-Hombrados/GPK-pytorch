@@ -8,12 +8,14 @@ Created on Sat Apr 11 13:49:37 2020
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from scipy.linalg import block_diag
+from to_torch import to_torch
 def DeStandarizeData(YTestS,YPredictedS,scalerY,VPredictedS = None ,Standarize = False):
     """
     Y : n_samples x n_tasks
     
     v 3.0: Introduces as input arguments scalerY from the Standarize function 
            in order to simplify the code. 
+    v 4.0: return torch tensors type.
     """
     
 
@@ -44,7 +46,7 @@ def DeStandarizeData(YTestS,YPredictedS,scalerY,VPredictedS = None ,Standarize =
        
     if VPredictedS is not None:
         
-        return YTest, YPredicted, VPredicted
+        return to_torch(YTest), to_torch(YPredicted), to_torch(VPredicted)
     if VPredictedS is None:
         
-         return YTest, YPredicted
+         return to_torch(YTest), to_torch(YPredicted)

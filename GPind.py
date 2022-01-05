@@ -15,7 +15,8 @@ def GPind(train_x,train_y,n_tasks,kernel_type):
     train_x = to_torch(train_x)
     train_y = to_torch(train_y)
     
-    training_iterations = 50
+    training_iterations = 100
+    learning_rate = 0.005
     
     
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
@@ -27,7 +28,7 @@ def GPind(train_x,train_y,n_tasks,kernel_type):
     
     
     # Use the adam optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)  # Includes GaussianLikelihood parameters
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  # Includes GaussianLikelihood parameters
 
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)

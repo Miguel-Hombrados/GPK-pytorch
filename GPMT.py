@@ -14,12 +14,13 @@ def GPMT(train_x,train_y,n_tasks,kernel_type,option_lv):
     train_x = to_torch(train_x)
     train_y = to_torch(train_y)
     
-    training_iterations = 50
+    training_iterations = 200
+    learning_rate = 0.05
     
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
     model = MultitaskGPModel(train_x, train_y, likelihood,n_tasks,kernel_type,option_lv)
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)  # Includes GaussianLikelihood parameters
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  # Includes GaussianLikelihood parameters
 
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)

@@ -17,5 +17,5 @@ def predGPind(test_x,likelihood,model):
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
         predictions = likelihood(model(test_x))
         mean = predictions.mean
-        std = predictions.stddev
-    return mean,std
+        var = predictions.variance
+    return mean,var

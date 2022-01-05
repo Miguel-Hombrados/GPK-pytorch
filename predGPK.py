@@ -27,13 +27,13 @@ def predGPK(mean_k,var_covar_k,Wtrain_s,**kwargs):
     
     mean = mean_k@Wtrain.T                  # F x N
 
-    std = torch.zeros(Nt,F)
+    variances = torch.zeros(Nt,F)
     if var_covar_k.shape == torch.Size([Nt,K]):     # N x K
         for nt in range(0,Nt):    
-            std[nt,:] = torch.diag(Wtrain@torch.diag(var_covar_k[nt,:])@Wtrain.T)
+            variances[nt,:] = torch.diag(Wtrain@torch.diag(var_covar_k[nt,:])@Wtrain.T)
     elif var_covar_k.shape == torch.Size([Nt,K,K]):   # N x K x K
         for nt in range(0,Nt):    
-            std[nt,:] = torch.diag(Wtrain@torch.diag(torch.diag(var_covar_k[nt,:,:]))@Wtrain.T)
+            variances[nt,:] = torch.diag(Wtrain@torch.diag(torch.diag(var_covar_k[nt,:,:]))@Wtrain.T)
     else:
         print("Input error in 'predGPK. Wrong shape'")
-    return mean,std
+    return mean,variances

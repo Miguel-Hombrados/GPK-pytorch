@@ -57,7 +57,7 @@ from data_to_torch import data_to_torch
 # #==============================================================================
 method = "NMF"  # Full
 methodGP = 'GPt24'
-kernel_type = "rbf"
+kernel_type = "linear"
 EXPERIMENT = 6
 TaskNumber = 24
 Stand = True
@@ -163,9 +163,11 @@ for archivo in range(len(onlyfiles)):
     
     start_ind = time.time()
     [YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind(XTest_S,like_train_24ind,model_train_24ind)
+    [ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24_S,YPredicted_24gp_ind_S,VPredicted_24gp_ind_S)   
+    [_, YPredicted_24gp_ind,VPredicted_24gp_ind]=DeStandarizeData(YTest_24_S,YPredicted_24gp_ind_S,scalerY_24,VPredicted_24gp_ind_S,Standarize = Stand)
     end_ind = time.time() 
     testing_time_ind = end_ind-start_ind
-    [_, YPredicted_24gp_ind,VPredicted_24gp_ind]=DeStandarizeData(YTest_24_S,YPredicted_24gp_ind_S,scalerY_24,VPredicted_24gp_ind_S,Standarize = Stand)
+  
     # 24GPKind================================================================
     start_gpk_ind = time.time()
     [model_train_24gpk_ind,like_train_24gpk_ind] = GPKtorch(XTrain_S,YTrain_K_S,TaskNumber,kernel_type,"ind")

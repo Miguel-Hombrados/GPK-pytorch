@@ -9,18 +9,25 @@ Created on Mon Dec 20 19:05:02 2021
 import torch
 import gpytorch
 from to_torch import to_torch
+from fix_constraints import fix_constraints
 from MTGPclasses import BatchIndependentMultitaskGPModel
+from my_initialization import my_initialization
 def GPind(train_x,train_y,n_tasks,kernel_type):
     
     train_x = to_torch(train_x)
     train_y = to_torch(train_y)
     
-    training_iterations = 100
+    training_iterations = 10
     learning_rate = 0.005
     
     
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
     model = BatchIndependentMultitaskGPModel(train_x, train_y, likelihood,n_tasks,kernel_type)
+    
+    
+    hypers = my_initialization(kernel_type,n_tasks)
+    fix_constraints(model,likelihood,kernel_type,n_tasks)
+    model.initialize(**hypers)
     
     # Find optimal model hyperparameters
     model.train()

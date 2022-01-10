@@ -8,15 +8,17 @@ train_x = torch.linspace(0, 1, 100)
 train_y = torch.stack([
     torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,
     torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,
+    torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,
 ], -1)
+
 
 class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super().__init__(train_x, train_y, likelihood)
-        self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([2]))
+        self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([3]))
         self.covar_module = gpytorch.kernels.ScaleKernel(
-            gpytorch.kernels.RBFKernel(batch_shape=torch.Size([2])),
-            batch_shape=torch.Size([2])
+            gpytorch.kernels.RBFKernel(batch_shape=torch.Size([3])  ),
+            batch_shape=torch.Size([3])
         )
 
     def forward(self, x):
@@ -27,7 +29,7 @@ class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
         )
 
 
-likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
+likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=3)
 model = BatchIndependentMultitaskGPModel(train_x, train_y, likelihood)
 
 # this is for running the notebook in our testing framework
@@ -68,6 +70,17 @@ with torch.no_grad(), gpytorch.settings.fast_pred_var():
     mean = predictions.mean
     std = predictions.stddev
     lower, upper = predictions.confidence_region()
+    
+test_y = torch.stack([
+    torch.sin(test_x * (2 * math.pi)) + torch.randn(test_x.size()) * 0.2,
+    torch.cos(test_x * (2 * math.pi)) + torch.randn(test_x.size()) * 0.2,
+    torch.cos(test_x * (2 * math.pi)) + torch.randn(test_x.size()) * 0.2,
+], -1)    
+    
+    
+from EvaluateConfidenceIntervals import EvaluateConfidenceIntervals
+
+EvaluateConfidenceIntervals(test_y,mean,torch.power(std,2))
 
 # This contains predictions for both tasks, flattened out
 # The first half of the predictions is for the first task

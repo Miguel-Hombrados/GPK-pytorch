@@ -1,5 +1,6 @@
 import torch
 import gpytorch
+from mykernels import bias
 class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood,num_task,kernel_type):
         super().__init__(train_x, train_y, likelihood)
@@ -8,11 +9,12 @@ class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
         if  kernel_type == 'rbf':
             kernel_cov =  gpytorch.kernels.RBFKernel(batch_shape=torch.Size([num_task]))
         if  kernel_type == 'linear':
-            kernel_cov =  gpytorch.kernels.LinearKernel(batch_shape=torch.Size([num_task]))
-          
+            kernel_cov =  gpytorch.kernels.LinearKernel(batch_shape=torch.Size([num_task])) 
+        if  kernel_type == 'matern':  
+            kernel_cov =  gpytorch.kernels.MaternKernel(nu  = 2.5, batch_shape=torch.Size([num_task]))
         self.covar_module = gpytorch.kernels.ScaleKernel(kernel_cov,
             batch_shape=torch.Size([num_task])
-        )
+        ) + bias(batch_shape=torch.Size([num_task])) 
 
 
     def forward(self, x):
@@ -33,7 +35,8 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
             kernel_cov =  gpytorch.kernels.RBFKernel(batch_shape=torch.Size([num_task]))
         if  kernel_type == 'linear':
             kernel_cov =  gpytorch.kernels.LinearKernel(batch_shape=torch.Size([num_task]))
-        
+        if  kernel_type == 'matern':  
+            kernel_cov =  gpytorch.kernels.MaternKernel(nu  = 2.5, batch_shape=torch.Size([num_task]))
         self.covar_module = gpytorch.kernels.MultitaskKernel(
             kernel_cov, num_tasks=num_task, rank=1
         )

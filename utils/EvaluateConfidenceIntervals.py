@@ -31,15 +31,10 @@ def EvaluateConfidenceIntervals(YTest,YPredicted,VPredicted):
     
     
     if VPredicted.shape == torch.Size([n_samples, n_tasks]):
-<<<<<<< HEAD
-            SP = np.sqrt(VPredicted)
-    if VPredicted.shape == (n_samples*n_tasks , n_samples*n_tasks):
-            SP = np.sqrt(np.diagonal(VPredicted).reshape(n_tasks,n_samples).T)  # REVIEW THIS !!
-=======
             SP = torch.sqrt(VPredicted)
-    if VPredicted.shape == torch.Size([n_samples*n_tasks , n_samples*n_tasks]):
+    if VPredicted.shape == (n_samples*n_tasks , n_samples*n_tasks):
             SP = torch.sqrt(torch.diagonal(VPredicted).reshape(n_tasks,n_samples).T)  # REVIEW THIS !!
->>>>>>> fe85a1c14081347f15f9db4147bde7738ffe5d8c
+
     
     for t in range(0,n_tasks):
          Yt = YTest[:,t].reshape(-1,1)

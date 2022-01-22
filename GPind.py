@@ -28,10 +28,10 @@ def GPind(train_x,train_y,n_tasks,kernel_type):
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
     model = BatchIndependentMultitaskGPModel(train_x, train_y, likelihood,n_tasks,kernel_type)
     
-    
-    hypers = my_initialization(kernel_type,n_tasks)
-    model.initialize(**hypers)
     fix_constraints(model,likelihood,kernel_type,n_tasks)
+    hypers = my_initialization(model,kernel_type,n_tasks)
+    #model.initialize(**hypers)
+
 
     
     # Find optimal model hyperparameters

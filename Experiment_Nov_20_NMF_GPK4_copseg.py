@@ -57,7 +57,7 @@ from data_to_torch import data_to_torch
 # #==============================================================================
 method = "NMF"  # Full
 methodGP = 'GPt24'
-kernel_type = "linear"
+kernel_type = "rbf"
 EXPERIMENT = 6
 TaskNumber = 24
 Stand = True
@@ -132,15 +132,15 @@ for archivo in range(len(onlyfiles)):
     
     # WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
     # WTrain = WtrainPP
-    # nn = 100
-    # YTrain24M  = YTrain_24[0:nn,:]
-    # YTrainstd24M  = YTrain_24_std[0:nn,:]
-    # XTrainM = XTrain[0:nn,:]
-    # YTrainM = YTrain[0:nn,:]
-    # XTrain  = XTrainM
-    # YTrain = YTrainM
-    # YTrain_24 = YTrain24M
-    # YTrain_24_std = YTrainstd24M
+    nn = 100
+    YTrain24M  = YTrain_24[0:nn,:]
+    YTrainstd24M  = YTrain_24_std[0:nn,:]
+    XTrainM = XTrain[0:nn,:]
+    YTrainM = YTrain[0:nn,:]
+    XTrain  = XTrainM
+    YTrain = YTrainM
+    YTrain_24 = YTrain24M
+    YTrain_24_std = YTrainstd24M
     
     Ntrain = np.size(YTrain_24,0)
     YY =(WTrain@YTrain.T)

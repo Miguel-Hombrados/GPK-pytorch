@@ -29,12 +29,14 @@ from pathlib import Path
 ProjectPath = Path.cwd()
 utilsPath = Path.joinpath(ProjectPath,"utils")
 
-
 UTIL_DIR = utilsPath
 sys.path.append(
     str(UTIL_DIR)
 )
-
+UTIL_DIR_GEN = Path("C:/Users/mahom/Documents/GitHub/Prob-utils")
+sys.path.append(
+    str(UTIL_DIR_GEN)
+)
 
 #project_path  = "C:\Users\mahom\Documents\GitHub\GPK-pytorch\"
 #ys.path.append(project_path+'utils\')
@@ -51,7 +53,8 @@ from load_obj import load_obj
 from save_obj import save_obj
 from sklearn.metrics import r2_score
 from data_to_torch import data_to_torch
-
+from norm2laplace import norm2laplace
+from EvaluateConfidenceIntervals_Laplace import EvaluateConfidenceIntervals_Laplace
 
 # #Load Power Load Data =========================================================
 # #==============================================================================
@@ -91,7 +94,7 @@ VAR_ALL = [None]*len(onlyfiles)
 ERROR_ALL_train = [None]*len(onlyfiles)
 R2_ALL_train = [None]*len(onlyfiles)
 
-
+gpytorch.settings.max_cg_iterations._set_value(5000)
 
 Alphas = [1e-6]
 #Alphas = np.linspace(1e-6,1e-2,5)
@@ -132,15 +135,15 @@ for archivo in range(len(onlyfiles)):
     
     # WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
     # WTrain = WtrainPP
-    nn = 100
-    YTrain24M  = YTrain_24[0:nn,:]
-    YTrainstd24M  = YTrain_24_std[0:nn,:]
-    XTrainM = XTrain[0:nn,:]
-    YTrainM = YTrain[0:nn,:]
-    XTrain  = XTrainM
-    YTrain = YTrainM
-    YTrain_24 = YTrain24M
-    YTrain_24_std = YTrainstd24M
+    # nn = 1000
+    # YTrain24M  = YTrain_24[0:nn,:]
+    # YTrainstd24M  = YTrain_24_std[0:nn,:]
+    # XTrainM = XTrain[0:nn,:]
+    # YTrainM = YTrain[0:nn,:]
+    # XTrain  = XTrainM
+    # YTrain = YTrainM
+    # YTrain_24 = YTrain24M
+    # YTrain_24_std = YTrainstd24M
     
     Ntrain = np.size(YTrain_24,0)
     YY =(WTrain@YTrain.T)
@@ -169,21 +172,21 @@ for archivo in range(len(onlyfiles)):
     testing_time_ind = end_ind-start_ind
   
     # 24GPKind================================================================
-    start_gpk_ind = time.time()
-    [model_train_24gpk_ind,like_train_24gpk_ind] = GPKtorch(XTrain_S,YTrain_K_S,TaskNumber,kernel_type,"ind")
-    end_gpk_ind = time.time() 
-    training_time_mtgp = end_gpk_ind-start_gpk_ind
+    # start_gpk_ind = time.time()
+    # [model_train_24gpk_ind,like_train_24gpk_ind] = GPKtorch(XTrain_S,YTrain_K_S,TaskNumber,kernel_type,"ind")
+    # end_gpk_ind = time.time() 
+    # training_time_mtgp = end_gpk_ind-start_gpk_ind
     
-    start_gpk_ind = time.time()
-    [YPredicted_Kgp_gpk_ind_S,VPredicted_Kgp_gpk_ind_S] = predGPind(XTest_S,like_train_24gpk_ind,model_train_24gpk_ind)
-    [_, YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind]=DeStandarizeData(YTest_K_S,YPredicted_Kgp_gpk_ind_S,scalerY_K,VPredicted_Kgp_gpk_ind_S,Standarize = Stand)
-    [YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind] = predGPK(YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind,WTrain,Stds_train_load = Stds_train_load)
-    ## Estimation of the validation error in NMF
-    YTrain_24_est = (WTrain@YTrain.T).T
-    Etrain = YTrain_24_est - YTrain_24
-    ##=========================================
-    end_gpk_ind = time.time() 
-    testing_time_mtgp = end_gpk_ind-start_gpk_ind
+    # start_gpk_ind = time.time()
+    # [YPredicted_Kgp_gpk_ind_S,VPredicted_Kgp_gpk_ind_S] = predGPind(XTest_S,like_train_24gpk_ind,model_train_24gpk_ind)
+    # [_, YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind]=DeStandarizeData(YTest_K_S,YPredicted_Kgp_gpk_ind_S,scalerY_K,VPredicted_Kgp_gpk_ind_S,Standarize = Stand)
+    # [YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind] = predGPK(YPredicted_Kgp_gpk_ind,VPredicted_Kgp_gpk_ind,WTrain,Stds_train_load = Stds_train_load)
+    # ## Estimation of the validation error in NMF
+    # YTrain_24_est = (WTrain@YTrain.T).T
+    # Etrain = YTrain_24_est - YTrain_24
+    # ##=========================================
+    # end_gpk_ind = time.time() 
+    # testing_time_mtgp = end_gpk_ind-start_gpk_ind
     # ====================================================================  
 
  

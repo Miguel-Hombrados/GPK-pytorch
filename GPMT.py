@@ -15,7 +15,7 @@ def GPMT(train_x,train_y,n_tasks,kernel_type,option_lv):
     train_y = to_torch(train_y)
     
     training_iterations = 200
-    learning_rate = 0.05
+    learning_rate = 0.01
     
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
     model = MultitaskGPModel(train_x, train_y, likelihood,n_tasks,kernel_type,option_lv)

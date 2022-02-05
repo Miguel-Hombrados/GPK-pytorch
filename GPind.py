@@ -21,7 +21,7 @@ def GPind(train_x,train_y,n_tasks,kernel_type):
     train_y = to_torch(train_y)
     
 
-    training_iterations = 60
+    training_iterations = 35
     learning_rate = 0.1
 
     

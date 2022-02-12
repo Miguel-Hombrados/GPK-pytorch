@@ -160,7 +160,7 @@ for archivo in range(len(onlyfiles)):
     [XTrain_S, YTrain_K_S , XTest_S, YTest_K_S,scalerX, scalerY_K]=StandarizeData(XTrain,YTrain, XTest,YTest,Standarize = Stand)
     # 24GP================================================================
     start_ind = time.time()
-    [model_train_24ind,like_train_24ind] = GPind(XTrain_S,YTrain_24_S,24,kernel_type)
+    [model_train_24ind,like_train_24ind,n_opt,min_valid_loss] = GPind(XTrain_S,YTrain_24_S,24,kernel_type)
     end_ind = time.time() 
     training_time_ind = end_ind-start_ind
     

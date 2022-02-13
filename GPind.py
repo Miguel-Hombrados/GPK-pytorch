@@ -43,9 +43,10 @@ def GPind(x,y,n_tasks,kernel_type):
     
     fix_constraints(model,likelihood,kernel_type,n_tasks)
     hypers = my_initialization(model,kernel_type,n_tasks)
-        #model.initialize(**hypers)
-         
-        
+
+    #model.initialize(**hypers)
+
+
     # Find optimal model hyperparameters
     model.train()
     likelihood.train()

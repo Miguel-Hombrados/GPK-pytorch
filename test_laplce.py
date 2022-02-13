@@ -14,6 +14,7 @@ from gpytorch.variational import VariationalStrategy
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
+
 # Training data is 100 points in [0,1] inclusive regularly spaced
 train_x = torch.linspace(0, 1, 100)
 # True function is sin(2*pi*x) with Gaussian noise
@@ -62,10 +63,17 @@ for i in range(training_iterations):
     loss.backward()
     print('Iter %d/%d - Loss: %.3f' % (i + 1, training_iterations, loss.item()))
     optimizer.step()
-    
-f_preds = model(test_x)
-y_preds = likelihood(f_preds.mean)
+  
 
+y_preds = likelihood(model(test_x))   
+  
+f_preds = model(test_x)
+f_preds2 = model.forward(test_x)
+y_preds_t = likelihood(f_preds2.mean)
+gpytorch.settings.num_likelihood_samples._set_value(10)
+y_preds = likelihood(f_preds)
+y_preds1 = y_preds.mean
+y_preds2 = likelihood(f_preds.mean)
 observed_pred = likelihood(model(test_x))
 with torch.no_grad():
     # Initialize plot

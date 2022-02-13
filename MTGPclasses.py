@@ -20,11 +20,12 @@ class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
         ) + bias(batch_shape=torch.Size([num_task])) 
 
 
+###  MultitaskMultivariateNorm
     def forward(self, x):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultitaskMultivariateNormal.from_batch_mvn(
-            gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+            gpytorch.distributions.MultivariateNormal(mean_x, covar_x,validate_args = True)
         )  
 
 class MultitaskGPModel(gpytorch.models.ExactGP):

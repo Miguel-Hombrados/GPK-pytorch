@@ -27,8 +27,8 @@ def GPind(x,y,n_tasks,kernel_type):
     #dataset = TensorDataset(train_x, train_y)
     #dataset = DataLoader((train_x,train_y))
 
-    num_iter = 50
-    learning_rate = 0.05
+    num_iter = 80
+    learning_rate = 0.01
 
 
     best_niter = {}
@@ -66,7 +66,7 @@ def GPind(x,y,n_tasks,kernel_type):
     for it in range(0,num_iter):
         train_loss,output = train_epoch(model,data_train,mll,optimizer)
         optimizer.zero_grad()
-        valid_loss = valid_epoch(model,likelihood,output,data_val,mll)
+        [valid_loss,valid_error] = valid_epoch(model,likelihood,output,data_val,mll)
     
         train_loss = train_loss / data_train[0].size()[0]
         valid_loss = valid_loss / data_val[0].size()[0]
@@ -86,6 +86,6 @@ def GPind(x,y,n_tasks,kernel_type):
         history['valid_loss'].append(valid_loss)
 
  
-    return model,likelihood,n_opt_niter,min_valid_loss
+    return model,likelihood,n_opt_niter,min_valid_loss,valid_error
 
 

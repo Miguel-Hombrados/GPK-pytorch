@@ -24,36 +24,40 @@ def GPind_lap(x,y,n_tasks,kernel_type):
     x= to_torch(x)
     y = to_torch(y)
 
-    num_iter = 50
-    learning_rate = 0.05
-
-
-    best_niter = {}
+    num_iter = 200
+    learning_rate = 0.01
     
+    [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=0.25, train_size=0.75, random_state=47, shuffle=True, stratify=None)
     
-    [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=0.2, train_size=0.8, random_state=47, shuffle=True, stratify=None)
 
     history = {}
     best_params = {}
+    models = {}
+    likelihoods = {}
     for task in range(0,n_tasks):
-        train_x_t = train_x[:,task]
-        train_y_t = train_y[:,task]
-        val_x_t = val_x[:,task]
-        val_y_t = val_y[:,task]
-        data_train_t = (train_x,train_y)
+        n_opt_iter = 0
+        min_valid_loss = np.Inf
+        min_train_loss = np.Inf
+        train_x_t = train_x
+        train_y_t = train_y[:,task].ravel()
+        val_x_t = val_x
+        val_y_t = val_y[:,task].ravel()
+        data_train_t = (train_x_t,train_y_t)
         data_val_t = (val_x_t,val_y_t)
         
         likelihood = gpytorch.likelihoods.LaplaceLikelihood()
         model = ApproxGPModel_Lap_single(train_x_t,kernel_type) # FUNCIONARIA SIN train_x, como en la gaussiana?
         
-        fix_constraints(model,likelihood,kernel_type,n_tasks=1)
-        hypers = my_initialization(model,kernel_type,n_tasks=1)
-    
-        
+        #fix_constraints(model,likelihood,kernel_type,n_tasks=1)
+        #hypers = my_initialization(model,kernel_type,n_tasks=1)
+            
         # Fix redundant parameters
-        [model,new_parameters] = fix_parameter(model,kernel_type)
+        #[model,new_parameters] = fix_parameter(model,kernel_type)
         # Use the adam optimizer
-        optimizer = torch.optim.Adam(new_parameters, lr=learning_rate)  # Includes GaussianLikelihood parameters
+        #new_parameters = model.parameters()
+        
+        
+        optimizer = torch.optim.Adam(list(model.parameters()) + list(likelihood.parameters()), lr=learning_rate)  # Includes GaussianLikelihood parameters
         
         history_t = {'train_loss': [], 'valid_loss': [], 'n_opt_iter': [], 'min_valid_loss': []}
     
@@ -64,7 +68,7 @@ def GPind_lap(x,y,n_tasks,kernel_type):
         for it in range(0,num_iter):
             train_loss,output = train_epoch(model,data_train_t,mll,optimizer)
             optimizer.zero_grad()
-            valid_loss = valid_epoch(model,likelihood,output,data_val_t,mll)
+            valid_loss,_ = valid_epoch(model,likelihood,output,data_val_t,mll)
         
             train_loss = train_loss / data_train_t[0].size()[0]
             valid_loss = valid_loss / data_val_t[0].size()[0]
@@ -74,9 +78,10 @@ def GPind_lap(x,y,n_tasks,kernel_type):
                                                                              train_loss,
                                                                              valid_loss,
                                                                               ))
-            
-            if it> 1  and valid_loss < np.min(history['valid_loss']):
+            if it> 1  and train_loss < np.min(history_t['valid_loss']):
+           # if it> 1  and valid_loss < np.min(history_t['valid_loss']):
                 min_valid_loss = valid_loss
+                #min_train_loss = train_loss
                 n_opt_iter = it + 1
                 best_params_k = model.state_dict()
             
@@ -86,6 +91,7 @@ def GPind_lap(x,y,n_tasks,kernel_type):
         history_t ['min_valid_loss'] = min_valid_loss
         history['task{}'.format(task+1)] = history_t  
         best_params['task{}'.format(task+1)] = best_params_k
+        models['task{}'.format(task+1)] = model
+        likelihoods['task{}'.format(task+1)] = likelihood
 
- 
-    return model,likelihood,
+    return models,likelihoods,history,best_params

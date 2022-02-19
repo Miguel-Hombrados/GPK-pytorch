@@ -22,9 +22,9 @@ def my_initialization(model,kernel_type,task_num):
     if kernel_type == "rbf":
 
         #model.likelihood.noise = torch.tensor(0.01)
-        model.likelihood.task_noises = 0.5*torch.ones(task_num)                                                         # 0.5
-        model.covar_module.kernels[0].base_kernel.outputscale = 1e-1*torch.ones(task_num)                                #0.5
-        model.covar_module.kernels[0].base_kernel.lengthscale = 15*torch.ones(task_num,1,1) # probar 15                  #3
+        model.likelihood.task_noises = 0.1*torch.ones(task_num)                                                         # 0.5
+        model.covar_module.kernels[0].base_kernel.outputscale = 20*torch.ones(task_num)                                #0.5
+        model.covar_module.kernels[0].base_kernel.lengthscale = 50*torch.ones(task_num,1,1) # probar 15                  #3
         model.covar_module.kernels[1].bias = 1e-7*torch.ones(task_num,1,1)                                              #1e-3
     
 

@@ -58,8 +58,28 @@ class ApproxGPModel_Lap_single(ApproximateGP):
         )
         super(ApproxGPModel_Lap_single, self).__init__(variational_strategy)
         self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+
         
+        if  kernel_type == 'rbf':
+            kernel_cov =  gpytorch.kernels.RBFKernel()
+        if  kernel_type == 'linear':
+            kernel_cov =  gpytorch.kernels.LinearKernel() 
+        if  kernel_type == 'matern':  
+            kernel_cov =  gpytorch.kernels.MaternKernel(nu  = 2.5)
+        self.covar_module = gpytorch.kernels.ScaleKernel(kernel_cov)+ bias() 
+
+    def forward(self, x):
+        mean_x = self.mean_module(x)
+        covar_x = self.covar_module(x)
+        return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+
+
+class ExactGPModel_single(gpytorch.models.ExactGP):
+    def __init__(self, train_x, train_y, likelihood,kernel_type):
+        n_batch = 1
+        super(ExactGPModel_single, self).__init__(train_x, train_y, likelihood)
+        self.mean_module = gpytorch.means.ConstantMean()
+        self.mean_module.initialize(constant=0.)
         if  kernel_type == 'rbf':
             kernel_cov =  gpytorch.kernels.RBFKernel()
         if  kernel_type == 'linear':

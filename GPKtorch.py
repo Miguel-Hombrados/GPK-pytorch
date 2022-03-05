@@ -8,8 +8,8 @@ Created on Wed Dec 29 10:05:03 2021
 
 import torch
 import gpytorch
-from GPind import GPind
 from GPind_ori import GPind_ori
+from GPind import GPind
 from GPMT import GPMT
 from to_torch import to_torch
 def GPKtorch(train_x,train_y,n_tasks,kernel_type,option_lv):
@@ -20,7 +20,7 @@ def GPKtorch(train_x,train_y,n_tasks,kernel_type,option_lv):
     
     
     if option_lv == "ind":
-        [model,likelihood,n_opt_niter,min_valid_loss] = GPind(train_x,train_y,n_tasks,kernel_type)
+        [model,likelihood,n_opt_niter,min_valid_loss] = GPind_ori(train_x,train_y,n_tasks,kernel_type)
         
     if option_lv == "ind_ori":
         [model,likelihood,n_opt_niter,min_valid_loss] = GPind(train_x,train_y,n_tasks,kernel_type)

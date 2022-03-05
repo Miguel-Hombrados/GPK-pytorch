@@ -24,6 +24,15 @@ train_y = torch.stack([
     torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,
 ], -1)
 
+    
+        
+test_x = torch.linspace(0, 1, 300)  
+test_y = torch.stack([
+    torch.sin(test_x * (2 * math.pi)) + torch.randn(test_x.size()) * 0.2,
+    torch.cos(test_x * (2 * math.pi)) + torch.randn(test_x.size()) * 0.2,
+], -1)
+    
+
 class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super().__init__(train_x, train_y, likelihood)
@@ -44,6 +53,7 @@ class BatchIndependentMultitaskGPModel(gpytorch.models.ExactGP):
 likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
 
 model = BatchIndependentMultitaskGPModel(train_x, train_y, likelihood)
+model_val = BatchIndependentMultitaskGPModel(test_x, test_y, likelihood)
 # this is for running the notebook in our testing framework
 import os
 smoke_test = ('CI' in os.environ)
@@ -67,28 +77,24 @@ for i in range(training_iterations):
     loss.backward()
     print('Iter %d/%d - Loss: %.3f' % (i + 1, training_iterations, loss.item()))
     optimizer.step()
-    
+
 # Set into eval mode
-model.eval()
-likelihood.eval()
+#model.eval()
+#likelihood.eval()
 
 # Initialize plots
 f, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))
 
 # Make predictions
 with torch.no_grad(), gpytorch.settings.fast_pred_var():
-    test_x = torch.linspace(0, 1, 300)
-    predictions = likelihood(model(test_x))
+    
+    f = model.forward(test_x)
+    predictions = likelihood(f)
     mean = predictions.mean
     std = predictions.stddev
     lower, upper = predictions.confidence_region()
-    
-test_y = torch.stack([
-    torch.sin(test_x * (2 * math.pi)) + torch.randn(test_x.size()) * 0.2,
-    torch.cos(test_x * (2 * math.pi)) + torch.randn(test_x.size()) * 0.2,
-], -1)
-    
-    
+        
+
 [IC1,IC2] = EvaluateConfidenceIntervals(test_y,mean,torch.pow(std,1))
 mIC1 = torch.mean(IC1)
 mIC2 = torch.mean(IC2)

@@ -8,15 +8,17 @@ import torch
 def train_epoch(model,data,mll,optimizer):
     train_loss=0.0
     model.train()
-#    for images, labels in dataloader:
 
-    #train_x,train_y = images.to(device),labels.to(device)
+
+
     (train_x,train_y) = data 
     optimizer.zero_grad()
     output = model(train_x)
     loss = -mll(output, train_y)
     loss.backward()
     optimizer.step()
+
+
     train_loss = loss.item() * train_x.size(0)
 
     return train_loss,output

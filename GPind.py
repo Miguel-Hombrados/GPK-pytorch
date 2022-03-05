@@ -11,9 +11,7 @@ import gpytorch
 from to_torch import to_torch
 from fix_constraints import fix_constraints
 from MTGPclasses import BatchIndependentMultitaskGPModel
-from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset, DataLoader,TensorDataset,random_split,SubsetRandomSampler, ConcatDataset
 from fix_parameter import fix_parameter
 from my_initialization import my_initialization
 from epoch_tv import train_epoch,valid_epoch
@@ -27,22 +25,22 @@ def GPind(x,y,n_tasks,kernel_type):
     #dataset = TensorDataset(train_x, train_y)
     #dataset = DataLoader((train_x,train_y))
 
-    num_iter = 80
-    learning_rate = 0.01
+    num_iter = 3
+    learning_rate = 1e-2
 
 
     best_niter = {}
     
     
-    [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=0.2, train_size=0.8, random_state=47, shuffle=True, stratify=None)
+    [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=0.02, train_size=0.98, random_state=47, shuffle=True, stratify=None)
     data_train = (train_x,train_y)
     data_val = (val_x,val_y)
 
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
     model = BatchIndependentMultitaskGPModel(train_x,train_y, likelihood,n_tasks,kernel_type)
     
-    fix_constraints(model,likelihood,kernel_type,n_tasks)
-    hypers = my_initialization(model,kernel_type,n_tasks)
+    fix_constraints(model,likelihood,kernel_type,n_tasks,"gpi")
+    hypers = my_initialization(model,likelihood,kernel_type,n_tasks,"gpi")
 
     #model.initialize(**hypers)
 
@@ -55,7 +53,7 @@ def GPind(x,y,n_tasks,kernel_type):
     # Fix redundant parameters
     [model,new_parameters] = fix_parameter(model,kernel_type)
     # Use the adam optimizer
-    optimizer = torch.optim.Adam(new_parameters, lr=learning_rate)  # Includes GaussianLikelihood parameters
+    optimizer = torch.optim.Adam(new_parameters, lr=learning_rate, betas = (0.9,0.999))  # Includes GaussianLikelihood parameters
     
     history = {'train_loss': [], 'valid_loss': []}
 
@@ -64,8 +62,8 @@ def GPind(x,y,n_tasks,kernel_type):
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
         
     for it in range(0,num_iter):
-        train_loss,output = train_epoch(model,data_train,mll,optimizer)
         optimizer.zero_grad()
+        train_loss,output = train_epoch(model,data_train,mll,optimizer)
         [valid_loss,valid_error] = valid_epoch(model,likelihood,output,data_val,mll)
     
         train_loss = train_loss / data_train[0].size()[0]
@@ -76,6 +74,11 @@ def GPind(x,y,n_tasks,kernel_type):
                                                                          train_loss,
                                                                          valid_loss,
                                                                           ))
+        
+        if it >50:
+            optimizer.param_groups[0]['lr'] = 1e-2 #5e-3
+        if it >80:
+                optimizer.param_groups[0]['lr'] = 1e-2
         
         if it> 1  and valid_loss < np.min(history['valid_loss']):
             min_valid_loss = valid_loss

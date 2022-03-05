@@ -46,7 +46,11 @@ from DeStandarizeData import DeStandarizeData
 from MAPE import MAPE
 from GP24I_v4 import GP24I
 from GPind import GPind
+from GPind_ori import GPind_ori
+from predGPind_ori import predGPind_ori
+from GPind_lap import GPind_lap
 from predGPK import predGPK
+from predGPind_lap import predGPind_lap
 from GPKtorch import GPKtorch
 from predGPind import predGPind
 from load_obj import load_obj
@@ -55,20 +59,21 @@ from sklearn.metrics import r2_score
 from data_to_torch import data_to_torch
 from norm2laplace import norm2laplace
 from EvaluateConfidenceIntervals_Laplace import EvaluateConfidenceIntervals_Laplace
-
+from outliers_removal import outliers_removal
 # #Load Power Load Data =========================================================
 # #==============================================================================
 method = "NMF"  # Full
 methodGP = 'GPt24'
 kernel_type = "rbf"
+option_lv = "mt"
 EXPERIMENT = 6
 TaskNumber = 24
 Stand = True
 
-
+gpytorch.settings.num_likelihood_samples._set_value(100)
 methodfile = 'NMF'
-datapath = Path.joinpath(ProjectPath,"Data","Exp_"+str(EXPERIMENT),str(methodfile))
-DATAPATH = str(datapath)
+#datapath = Path.joinpath(ProjectPath,"Data","Exp_"+str(EXPERIMENT),str(methodfile))
+#DATAPATH = str(datapath)
 datapath = Path.joinpath(ProjectPath,"Data","BuenosResNMF")
 DATAPATH = str(datapath)
 #onlyfiles = [f for f in listdir(datapath) if isfile(join(datapath, f))]
@@ -94,7 +99,7 @@ VAR_ALL = [None]*len(onlyfiles)
 ERROR_ALL_train = [None]*len(onlyfiles)
 R2_ALL_train = [None]*len(onlyfiles)
 
-gpytorch.settings.max_cg_iterations._set_value(5000)
+gpytorch.settings.max_cg_iterations._set_value(10000)
 
 Alphas = [1e-6]
 #Alphas = np.linspace(1e-6,1e-2,5)
@@ -119,6 +124,11 @@ for archivo in range(len(onlyfiles)):
     #Var_Noise_NMF_val = SecCopy['OptValVar_F']
     #Var_Noise_NMF_train = SecCopy['OptTrainVar_F']
 
+ 
+
+
+
+
     XTrain = DATA['X_Train_Val'].T    # N x F ### torch.from_numpy
     YTrain = DATA['Y_Train_Val']           
     XTest = DATA['X_Test'].T           # N x F           
@@ -130,12 +140,12 @@ for archivo in range(len(onlyfiles)):
     Stds_train_load = DATA['Stds_train_load']
     Ntest = np.size(YTest_24,0)
     Ntrain = np.size(YTrain_24,0)
-    YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
-
+    #YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
+    #[XTrain,XTest,YTrain_24,YTest_24] = outliers_removal(XTrain,XTest,YTrain_24,YTest_24)
     
     # WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
     # WTrain = WtrainPP
-    # nn = 1000
+    # nn = 500
     # YTrain24M  = YTrain_24[0:nn,:]
     # YTrainstd24M  = YTrain_24_std[0:nn,:]
     # XTrainM = XTrain[0:nn,:]
@@ -146,8 +156,8 @@ for archivo in range(len(onlyfiles)):
     # YTrain_24_std = YTrainstd24M
     
     Ntrain = np.size(YTrain_24,0)
-    YY =(WTrain@YTrain.T)
-    E = np.divide(YTrain_24.T,np.matlib.repmat(Stds_train_load,1,Ntrain))-YY
+    #YY =(WTrain@YTrain.T)
+    #E = np.divide(YTrain_24.T,np.matlib.repmat(Stds_train_load,1,Ntrain))-YY
     #Var_noise_train_est = np.var(E,axis =1)
     
     PrecisionH = WTrain.T@WTrain
@@ -157,19 +167,43 @@ for archivo in range(len(onlyfiles)):
   
     
     [XTrain_S, YTrain_24_S , XTest_S, YTest_24_S,scalerX, scalerY_24]=StandarizeData(XTrain,YTrain_24, XTest,YTest_24,Standarize = Stand)
-    [XTrain_S, YTrain_K_S , XTest_S, YTest_K_S,scalerX, scalerY_K]=StandarizeData(XTrain,YTrain, XTest,YTest,Standarize = Stand)
+    
+
+    #[XTrain_S, YTrain_K_S , XTest_S, YTest_K_S,scalerX, scalerY_K]=StandarizeData(XTrain,YTrain, XTest,YTest,Standarize = Stand)
     # 24GP================================================================
     start_ind = time.time()
-    [model_train_24ind,like_train_24ind,n_opt,min_valid_loss] = GPind(XTrain_S,YTrain_24_S,24,kernel_type)
+    #[model_train_24ind,like_train_24ind,n_opt,min_valid_loss,_] = GPind(XTrain_S,YTrain_24_S,24,kernel_type)
+    #[model_train_24ind,like_train_24ind,history,best_params] = GPind_lap(XTrain_S,YTrain_24_S,24,kernel_type)
+    #[model_train_24ind,like_train_24ind,n_opt,min_valid_loss,ErrorValidation] = GPKtorch(XTrain_S,YTrain_24_S,24,kernel_type,option_lv)
+    [M,L,R,model_train_24ind,like_train_24ind] = GPind_ori(XTrain_S,YTrain_24_S,24,kernel_type)
     end_ind = time.time() 
     training_time_ind = end_ind-start_ind
     
     start_ind = time.time()
-    [YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind(XTest_S,like_train_24ind,model_train_24ind)
-    [ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24_S,YPredicted_24gp_ind_S,VPredicted_24gp_ind_S)   
+
+    
+    [YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind_ori(XTest_S,like_train_24ind,model_train_24ind)
+    #[YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind(XTest_S,like_train_24ind,model_train_24ind)
+    #[YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind_lap(XTest_S,like_train_24ind,model_train_24ind)
+    #[ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24_S,YPredicted_24gp_ind_S,VPredicted_24gp_ind_S)    
+
+
     [_, YPredicted_24gp_ind,VPredicted_24gp_ind]=DeStandarizeData(YTest_24_S,YPredicted_24gp_ind_S,scalerY_24,VPredicted_24gp_ind_S,Standarize = Stand)
     end_ind = time.time() 
     testing_time_ind = end_ind-start_ind
+    ############################################################################
+    #K = ErrorValidation.size(2)
+    #Nfold = ErrorValidation.size(1)
+    #Nval = ErrorValidation.size(0)
+ 
+    #EV = ErrorValidation.reshape(Nval*Nfold,K)
+    #Snorm_val = np.matlib.repmat(Stds_train_load.T,Nval,1)
+    #A = scipy.linalg.sqrtm(np.linalg.inv(WTrain.T@WTrain))
+    #NoiseEstimation_Variance3  = np.var((EV@A@WTrain.T)*Snorm_val,axis=0) 
+
+    #for ss in range(0,Ntest):
+    #    VPredicted_24gp_gpk[ss,:] = (np.diag(WTrain@A@np.diag(VPredicted_24gp_K[ss,:])@A@WTrain.T)*(S2norm.ravel())  +  NoiseEstimation_Variance3)#
+    
   
     # 24GPKind================================================================
     # start_gpk_ind = time.time()
@@ -189,10 +223,15 @@ for archivo in range(len(onlyfiles)):
     # testing_time_mtgp = end_gpk_ind-start_gpk_ind
     # ====================================================================  
 
- 
+    [YPredicted_24gp_ind,Blap1] = norm2laplace(YPredicted_24gp_ind,VPredicted_24gp_ind,option=1)
+    [ICS1_24gp_ind_l1,ICS2_24gp_ind_l1] = EvaluateConfidenceIntervals_Laplace(YTest_24,YPredicted_24gp_ind,Blap1)   
+    
+    [YPredicted_24gp_ind,Blap2] = norm2laplace(YPredicted_24gp_ind,VPredicted_24gp_ind,option=2)
+    [ICS1_24gp_ind_l2,ICS2_24gp_ind_l2] = EvaluateConfidenceIntervals_Laplace(YTest_24,YPredicted_24gp_ind,Blap2)   
    
     [ICS1_24gp_ind,ICS2_24gp_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_ind,VPredicted_24gp_ind)   
 
+ 
     [ICS1_24gp_gpk_ind,ICS2_24gp_gpk_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind) 
     
     

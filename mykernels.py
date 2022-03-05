@@ -58,11 +58,10 @@ class bias(gpytorch.kernels.Kernel):
     # this is the kernel function
     def forward(self, x1, x2, **params):
         # apply biasscale
-        x1_ = x1
-        x2_ = x2
-        # calculate the distance between inputs
-        diff = self.covar_dist(x1_, x2_, **params)
-        diff0 = torch.ones_like(diff)*self.bias
+        n1 = x1.size(0)
+        n2 = x2.size(0)
+        O = torch.ones(n1,n2)   
+        diff0 = O*self.bias
         # prevent divide by 0 errors
         diff0.where(diff0 == 0, torch.as_tensor(1e-20))
         # return sinc(diff) = sin(diff) / diff

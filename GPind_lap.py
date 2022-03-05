@@ -48,8 +48,8 @@ def GPind_lap(x,y,n_tasks,kernel_type):
         likelihood = gpytorch.likelihoods.LaplaceLikelihood()
         model = ApproxGPModel_Lap_single(train_x_t,kernel_type) # FUNCIONARIA SIN train_x, como en la gaussiana?
         
-        #fix_constraints(model,likelihood,kernel_type,n_tasks=1)
-        #hypers = my_initialization(model,kernel_type,n_tasks=1)
+        fix_constraints(model,likelihood,kernel_type,1,"gpi_lap_var")
+        hypers = my_initialization(model,likelihood,kernel_type,1,"gpi_lap_var")
             
         # Fix redundant parameters
         #[model,new_parameters] = fix_parameter(model,kernel_type)

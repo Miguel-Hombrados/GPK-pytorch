@@ -28,12 +28,15 @@ import pandas as pd
 from pathlib import Path
 ProjectPath = Path.cwd()
 utilsPath = Path.joinpath(ProjectPath,"utils")
+probsUtilsPath = Path.joinpath(ProjectPath,"Prob-utils")
+
 
 UTIL_DIR = utilsPath
 sys.path.append(
     str(UTIL_DIR)
 )
-UTIL_DIR_GEN = Path("C:/Users/mahom/Documents/GitHub/Prob-utils")
+#UTIL_DIR_GEN = Path("C:/Users/mahom/Documents/GitHub/Prob-utils")
+UTIL_DIR_GEN = probsUtilsPath
 sys.path.append(
     str(UTIL_DIR_GEN)
 )

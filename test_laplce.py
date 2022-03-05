@@ -64,21 +64,22 @@ for i in range(training_iterations):
     print('Iter %d/%d - Loss: %.3f' % (i + 1, training_iterations, loss.item()))
     optimizer.step()
   
-
-y_preds = likelihood(model(test_x))   
-  
-f_preds = model(test_x)
-f_preds2 = model.forward(test_x)
-y_preds_t = likelihood(f_preds2.mean)
-gpytorch.settings.num_likelihood_samples._set_value(10)
-y_preds = likelihood(f_preds)
-y_preds1 = y_preds.mean
-y_preds2 = likelihood(f_preds.mean)
-observed_pred = likelihood(model(test_x))
+with torch.no_grad(), gpytorch.settings.fast_pred_var():
+    y_preds = likelihood(model(test_x))   
+      
+    f_preds = model(test_x)
+    
+    f_preds2 = model.forward(test_x)
+    y_preds_t = likelihood(f_preds2.mean)
+    gpytorch.settings.num_likelihood_samples._set_value(10)
+    y_preds = likelihood(f_preds)
+    y_preds1 = y_preds.mean
+    y_preds2 = likelihood(f_preds.mean)
+    observed_pred = likelihood(model(test_x))
 with torch.no_grad():
     # Initialize plot
     f, ax = plt.subplots(1, 1, figsize=(4, 3))
-
+    
     # Get upper and lower confidence bounds
     # Plot training data as black stars
     ax.plot(test_x.numpy(), test_y.numpy(), 'k*')

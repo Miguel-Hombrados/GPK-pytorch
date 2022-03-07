@@ -17,22 +17,29 @@ from my_initialization import my_initialization
 from epoch_tv import train_epoch,valid_epoch
 
 
-def GPind_ori(x,y,n_tasks,kernel_type):
+def GPind_ori(x,y,n_tasks,kernel_type,opt_parameters):
 
     
 
       x= to_torch(x)
       y = to_torch(y)
 
-      n_restarts = 10
+
+      learning_rate = opt_parameters['lr1']
+      learning_rate2 = opt_parameters['lr2'] 
+      n_restarts = opt_parameters['n_restarts'] 
+      num_iter = opt_parameters['num_iter'] 
+      trainsize = opt_parameters['trainsize']  
+      valsize = 1 - trainsize
       
-      
-      num_iter = 1500
-      learning_rate = 0.02
-      valtsize = 0.1
-      trainsize = 0.9
-      
-      [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=valtsize, train_size=trainsize, random_state=47, shuffle=True, stratify=None)
+
+      #n_restarts = 10
+      #num_iter = 600#1500
+      #learning_rate = 0.02
+      #valsize = 0.1
+      #trainsize = 0.9
+      #learning_rate2 = 0.02
+      [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=valsize, train_size=trainsize, random_state=47, shuffle=True, stratify=None)
       
 
 
@@ -40,7 +47,8 @@ def GPind_ori(x,y,n_tasks,kernel_type):
       MODELS = {}
       LIKELIHOODS = {}
       for rest in range(0,n_restarts):
-      
+          print()
+          print("RESTART{}/{}:".format(rest+1,n_restarts))
           history = {}
           best_params = {}
           models = {}
@@ -89,8 +97,8 @@ def GPind_ori(x,y,n_tasks,kernel_type):
                                                                                    train_loss,
                                                                                    valid_loss,
                                                                                     ))
-                  if it >200:
-                      optimizer.param_groups[0]['lr'] = 2e-3
+                  if it >500:
+                      optimizer.param_groups[0]['lr'] = learning_rate
                   
                   #if it> 1  and train_loss < np.min(history_t['train_loss']):
                   if it> 1  and valid_loss < np.min(history_t['valid_loss']):
@@ -109,11 +117,14 @@ def GPind_ori(x,y,n_tasks,kernel_type):
               likelihoods['task{}'.format(task+1)] = likelihood
           Results['restart{}'.format(rest+1)] = {'history':history,'best_params':best_params,'models':models,'likelihoods':likelihoods,
                                                'configuration':{' lr': learning_rate,'max_iter':num_iter,'num_restarts':n_restarts,
-                                                        'ratioTRTST':(trainsize,valtsize)}}
+                                                        'ratioTRTST':(trainsize,valsize)}}
           MODELS['restart{}'.format(rest+1)] = models
           LIKELIHOODS['restart{}'.format(rest+1)] = likelihoods
+          
           Opt_model = {}
           Opt_likelihood = {}
+      print()
+      print()
       for task in range(0,24):  
           Opt_loss = torch.inf
           for rest in range(0,n_restarts):
@@ -122,9 +133,7 @@ def GPind_ori(x,y,n_tasks,kernel_type):
                   Opt_loss = minl_t_r
                   Opt_model['task{}'.format(task+1)]= MODELS['restart{}'.format(rest+1)]['task{}'.format(task+1)]
                   Opt_likelihood['task{}'.format(task+1)]= LIKELIHOODS['restart{}'.format(rest+1)]['task{}'.format(task+1)]
-              print('Task:{}'.format(task+1)+' Restart:{}'.format(rest)+' Min validation loss:{:.3f}'.format(minl_t_r))
-              
-              
-              
+              print('Task:{}'.format(task+1)+' Restart:{}'.format(rest)+' Min validation loss:{:.5f}'.format(Opt_loss))
+      
               
       return MODELS,LIKELIHOODS,Results,Opt_model,Opt_likelihood

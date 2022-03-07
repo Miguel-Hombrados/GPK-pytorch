@@ -97,8 +97,8 @@ def GPind_ori(x,y,n_tasks,kernel_type,opt_parameters):
                                                                                    train_loss,
                                                                                    valid_loss,
                                                                                     ))
-                  if it >500:
-                      optimizer.param_groups[0]['lr'] = learning_rate
+                  if it >int(0.8*num_iter):
+                      optimizer.param_groups[0]['lr'] =  learning_rate2 
                   
                   #if it> 1  and train_loss < np.min(history_t['train_loss']):
                   if it> 1  and valid_loss < np.min(history_t['valid_loss']):

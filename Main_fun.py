@@ -83,9 +83,10 @@ if forecast_method == "gpk":
     name_forecast_method = forecast_method + option_lv
 else:
     name_forecast_method = forecast_method
-EXPERIMENT = 6  # This has to do with the verion of the NMF generated
+EXPERIMENT = 17  # This has to do with the verion of the NMF generated
 TaskNumber = 24
 Stand = True
+#folder_data_name = "Exp_"+str(EXPERIMENT)
 folder_data_name = "BuenosResNMF"
 #LOCATIONS = ['ME','CT','NH','RI','NEMASSBOST','SEMASS','VT','WCMASS']
 
@@ -114,12 +115,6 @@ for archivo in range(len(onlyfiles)):
     DATA = data_to_torch(DATA)
     print(FILE_PATH)
     
-    #INFO = DATA['Info']
-    #INFO['Alphas'] = Alphas
-    #INFO['stdGP'] = Stand
-    #SecCopy= DATA['RD']
-    #Var_Noise_NMF_val = SecCopy['OptValVar_F']
-    #Var_Noise_NMF_train = SecCopy['OptTrainVar_F']
 
     XTrain = DATA['X_Train_Val'].T    # N x F ### torch.from_numpy
     YTrain = DATA['Y_Train_Val']           
@@ -249,13 +244,15 @@ for archivo in range(len(onlyfiles)):
     RESULTS[archivo] = Results
     
     file_name = name_forecast_method+"_Stand_"+str(Stand)
-    #if 'INFO' in locals():
-    #    file_name = file_name
-        
-    file_results = utilsPath = Path.Path.joinpath(ResultsPath,file_name+"_results")
-    file_model = utilsPath = Path.Path.joinpath(ResultsPath,file_name+"_model")
+    if 'INFO' in locals():
+        file_name = file_name="Exp_"+str(EXPERIMENT)
+    file_results = Path.Path.joinpath(ResultsPath,file_name+"_results")
+    file_model = Path.Path.joinpath(ResultsPath,file_name+"_model")
+    file_data = Path.Path.joinpath(ResultsPath,file_name+"_data")
     save_obj(RESULTS, file_results.as_posix())
     save_obj(RESULTS, file_model.as_posix())
+    save_obj(DATA, file_data.as_posix())
+
 
 
 

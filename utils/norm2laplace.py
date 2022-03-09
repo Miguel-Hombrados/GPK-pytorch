@@ -10,16 +10,16 @@ YPredicted : array (n_samples , n_task)
 option: If 1: then returns D(laplace|gaussian)
         If 2: then returns D(gaussian|laplace) (default)
 """
-import numpy as np
+import torch
 def norm2laplace(mu,var,option=2):
     
     # Matrices  N x F
     mu_lap = mu
     
     if option==1:
-        b = np.sqrt(var/2)
+        b = torch.sqrt(var/2)
     if option==2:
-        b = np.sqrt((2*var)/np.pi)
+        b = torch.sqrt((2*var)/torch.pi)
     return mu_lap,b
     
     

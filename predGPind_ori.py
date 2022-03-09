@@ -12,7 +12,7 @@ def predGPind_ori(test_x,likelihoods,models):
     
     test_x = to_torch(test_x)
     n_test = test_x.size(0)
-    n_task = 24
+    n_task = len(models)
     
     means = torch.zeros(n_test,n_task)
     variances = torch.zeros(n_test,n_task)

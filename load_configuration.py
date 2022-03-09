@@ -10,10 +10,10 @@ def load_configuration(input_params,onlyfilesALL):
     opt_parameters ={}
     if len(input_params)==1:
         print('Running default parameters and all locations')
-        opt_parameters['lr1'] = 0.02
-        opt_parameters['lr2'] = 0.02
-        opt_parameters['n_restarts'] = 10
-        opt_parameters['num_iter']  = 6
+        opt_parameters['lr1'] = 0.01
+        opt_parameters['lr2'] = 0.005
+        opt_parameters['n_restarts'] = 5
+        opt_parameters['num_iter']  = 5
         opt_parameters['trainsize'] = 0.9
         onlyfiles = onlyfilesALL
     elif len(input_params)==2: 
@@ -24,16 +24,16 @@ def load_configuration(input_params,onlyfilesALL):
         opt_parameters['trainsize'] = 0.9
         print('loading specified location')
         location = "_"+input_params[1]+"_"
-        onlyfiles  =  any(location in fi for fi in onlyfilesALL)
+        onlyfiles = [f for f in onlyfilesALL if location in f ]
     else:
         print('loading parameters from file and specified location')
-        opt_parameters['lr1'] = float(input_params[2])
-        opt_parameters['lr2'] = float(input_params[3])
-        opt_parameters['n_restarts'] = int(input_params[4])
-        opt_parameters['num_iter']  = int(input_params[5])
-        opt_parameters['trainsize'] = float(input_params[6])
-        location = "_"+input_params[1]+"_"
-        onlyfiles  =  any(location in fi for fi in onlyfilesALL)
+        opt_parameters['lr1'] = float(input_params[3])
+        opt_parameters['lr2'] = float(input_params[4])
+        opt_parameters['n_restarts'] = int(input_params[5])
+        opt_parameters['num_iter']  = int(input_params[6])
+        opt_parameters['trainsize'] = float(input_params[7])
+        location = "_"+input_params[2]+"_"
+        onlyfiles = [f for f in onlyfilesALL if location in f ]
     print("LOCATIONS:", onlyfiles)
     print("OPTIMIZATION PARAMETERS:")
     print("Learning Rate:",opt_parameters['lr1'])

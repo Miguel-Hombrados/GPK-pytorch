@@ -276,10 +276,16 @@ for archivo in range(len(onlyfiles)):
     # PRINT===================================================================
     print('Mape Medio 24GPs indep   ', mapemedio )
     print('R2 24GPs i:    ',r2_24gp)
+    
+    print('Confidence intervals Mean  : ',(torch.mean(ICS1_24.T),torch.mean(ICS2_24.T)))
+    print('Confidence intervals laplace 1  Mean: ', (torch.mean(ICS1_24_l1.T),torch.mean(ICS2_24_l1.T)))
+    print('Confidence intervals laplace 2 Mean : ', (torch.mean(ICS1_24_l2.T),torch.mean(ICS2_24_l2.T)))
      
     print('Confidence intervals : ',(ICS1_24.T,ICS2_24.T))
     print('Confidence intervals laplace 1 : ', (ICS1_24_l1.T,ICS2_24_l1.T))
     print('Confidence intervals laplace 2 : ', (ICS1_24_l2.T,ICS2_24_l2.T))
+    
+    
     print('Training time:   ', training_time )
     print('Test time:   ',  testing_time)
     #==========================================================================

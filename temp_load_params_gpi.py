@@ -26,7 +26,7 @@ model.covar_module.kernels[0].base_kernel.raw_outputscale.grad
 
 
 
-for task in range(1,25):
+for task in range(1,8):
 
     #print("lenthscale",model['task{}'.format(task)].covar_module.kernels[0].base_kernel.lengthscale)
     #print("outputscale",model['task{}'.format(task)].covar_module.kernels[0].outputscale)

@@ -72,18 +72,20 @@ from EvaluateConfidenceIntervals_Laplace import EvaluateConfidenceIntervals_Lapl
 from outliers_removal import outliers_removal
 from load_configuration import load_configuration
 from print_configuration import print_configuration
+from correcting_factor_cov import correcting_factor_cov
+from to_torch import to_torch
 # #Load Power Load Data =========================================================
 # #==============================================================================
 method = "NMF"  # Full
 methodfile = 'NMF'
 kernel_type = "rbf"
 forecast_method = "gp_ind_ori" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
-option_lv = "mt"
+option_lv = "gp_ind_ori" # gp_ind_ori/gpmt
 if forecast_method == "gpk":
-    name_forecast_method = forecast_method + option_lv
+    name_forecast_method = forecast_method +"_" +option_lv
 else:
     name_forecast_method = forecast_method
-EXPERIMENT = 17  # This has to do with the verion of the NMF generated
+EXPERIMENT = 3  # This has to do with the verion of the NMF generated
 TaskNumber = 24
 Stand = True
 #folder_data_name = "Exp_"+str(EXPERIMENT)
@@ -123,16 +125,16 @@ for archivo in range(len(onlyfiles)):
     YTest_24 = DATA['Y_Test_24']     # N x T         
     YTrain_24 = DATA['Y_Train_Val_24']     
     TaskNumber = np.size(DATA['Wtrain_load'],1)
-    WTrain = DATA['Wtrain_load']
+    WTrain = to_torch(DATA['Wtrain_load'])
     Stds_train_load = DATA['Stds_train_load']
     Ntest = np.size(YTest_24,0)
     Ntrain = np.size(YTrain_24,0)
-    #YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
+
     #[XTrain,XTest,YTrain_24,YTest_24] = outliers_removal(XTrain,XTest,YTrain_24,YTest_24)
     
-    # WtrainPP = YTrain_24_std.T@YTrain@np.linalg.inv(YTrain.T@YTrain)
-    # WTrain = WtrainPP
-    # nn = 500
+
+    # nn = 100
+    # YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
     # YTrain24M  = YTrain_24[0:nn,:]
     # YTrainstd24M  = YTrain_24_std[0:nn,:]
     # XTrainM = XTrain[0:nn,:]
@@ -141,7 +143,7 @@ for archivo in range(len(onlyfiles)):
     # YTrain = YTrainM
     # YTrain_24 = YTrain24M
     # YTrain_24_std = YTrainstd24M  
-    Ntrain = np.size(YTrain_24,0)
+
     # NORMATLIZATION================================================================
     
     if forecast_method == "gpk":
@@ -151,22 +153,68 @@ for archivo in range(len(onlyfiles)):
 
     start = time.time()
     # TRAINING================================================================
+    #==========================================================================
     if forecast_method == "gp_ind_ori": 
-        [M,L,R,model,like] = GPind_ori(XTrain_S,YTrain_24_S,24,kernel_type,opt_parameters)
+        [M,L,RESULTS,model,like] = GPind_ori(XTrain_S,YTrain_24_S,24,kernel_type,opt_parameters)
     #elif forecast_method == "gpk": 
     end = time.time() 
     training_time = end-start
-    # TESTING================================================================
+    #=========================================================================
+    if forecast_method == "gpk": 
+        K = YTrain.size(1)
+        [M,L,RESULTS,model,like,ind_val] = GPKtorch(XTrain_S,YTrain_K_S,WTrain,K,kernel_type,option_lv,opt_parameters)
+    end = time.time() 
+    training_time = end-start
+    # TESTING==================================================================
+    #==========================================================================
     start = time.time()  
     if forecast_method == "gp_ind_ori": 
         [YPredicted_24gp_S,VPredicted_24gp_S] = predGPind_ori(XTest_S,like,model)
     end = time.time() 
     testing_time = end-start
-    
+    #=========================================================================
+    if forecast_method == "gpk": 
+        [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPind_ori(XTest_S,like,model)
+        [_, YPredicted_24gp_K,VPredicted_24gp_K]=DeStandarizeData(YTest_K_S,YPredictedS_KgpS,scalerY_K,VPredicted_Kgp_S,Standarize = Stand)
+        a = correcting_factor_cov(model,WTrain,YTrain[ind_val,:],XTrain_S[ind_val,:],option_lv,scalerY_K)
+        [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPK(YPredicted_24gp_K,VPredicted_Kgp_S,WTrain,Stds_train_load = Stds_train_load,a = a)
+    end = time.time() 
+    testing_time = end-start
+    #=========================================================================
     #[YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind(XTest_S,like_train_24ind,model_train_24ind)
     #[YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind_lap(XTest_S,like_train_24ind,model_train_24ind)
-    #predGPK(mean_k,var_covar_k,Wtrain_s,**kwargs)
-    [_, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)
+
+    
+    if forecast_method == "gpk": 
+
+        # TRANSFORMATION====
+        S2norm = torch.pow(Stds_train_load,2)
+        Snorm = Stds_train_load.T.repeat(Ntest,1)
+        Snorm_tr  = Stds_train_load.T.repeat(Ntrain,1)
+     
+        ErrorValidation_std = torch.stack(RESULTS['ValidationErrors'],dim =1)
+        YPredicted_24gp = (YPredicted_24gp_K@WTrain.T)*Snorm
+      
+        Nval = ErrorValidation_std.size(0)
+        Snorm_val = Stds_train_load.T.repeat(Nval,1)
+
+        NoiseEstimation_Variance3  = torch.var((ErrorValidation_std@WTrain.T)*Snorm_val,axis=0) 
+        
+        VPredicted_24gp = torch.zeros((Ntest,24))
+        for ss in range(0,Ntest):
+            VPredicted_24gp[ss,:] = (torch.diag(WTrain@torch.diag(VPredicted_24gp_K[ss,:])@WTrain.T)*(S2norm.ravel())  +  NoiseEstimation_Variance3)/24
+    else:
+        [_, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)
+
+
+
+
+    
+    
+
+    
+
+
 
     ############################################################################
     #[model_train_24ind,like_train_24ind,n_opt,min_valid_loss,_] = GPind(XTrain_S,YTrain_24_S,24,kernel_type)
@@ -188,7 +236,7 @@ for archivo in range(len(onlyfiles)):
   
     # 24GPKind================================================================
     # start_gpk_ind = time.time()
-    # [model_train_24gpk_ind,like_train_24gpk_ind] = GPKtorch(XTrain_S,YTrain_K_S,TaskNumber,kernel_type,"ind")
+    #
     # end_gpk_ind = time.time() 
     # training_time_mtgp = end_gpk_ind-start_gpk_ind
     
@@ -205,16 +253,13 @@ for archivo in range(len(onlyfiles)):
     # ====================================================================  
 
 
-    # RESULTS===============================================
+    # METRICS==================================================================
     [YPredicted_24gp_ind,Blap1] = norm2laplace(YPredicted_24gp,VPredicted_24gp,option=1)
     [ICS1_24_l1,ICS2_24_l1] = EvaluateConfidenceIntervals_Laplace(YTest_24,YPredicted_24gp_ind,Blap1)    
     [YPredicted_24gp,Blap2] = norm2laplace(YPredicted_24gp,VPredicted_24gp,option=2)
     [ICS1_24_l2,ICS2_24_l2] = EvaluateConfidenceIntervals_Laplace(YTest_24,YPredicted_24gp,Blap2)    
     [ICS1_24,ICS2_24] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp,VPredicted_24gp)   
 
- 
-    #[ICS1_24gp_gpk_ind,ICS2_24gp_gpk_ind] = EvaluateConfidenceIntervals(YTest_24,YPredicted_24gp_gpk_ind,VPredicted_24gp_gpk_ind) 
-    
     
     mapes= MAPE(YTest_24,YPredicted_24gp)
     mapemedio = torch.mean(mapes)
@@ -227,6 +272,17 @@ for archivo in range(len(onlyfiles)):
         R2_all[samp,0] = r2_score(YTest_24[samp,:],YPredicted_24gp[samp,:])
     r2_24gp  = np.mean(R2_all)
     
+    
+    # PRINT===================================================================
+    print('Mape Medio 24GPs indep   ', mapemedio )
+    print('R2 24GPs i:    ',r2_24gp)
+     
+    print('Confidence intervals : ',(ICS1_24.T,ICS2_24.T))
+    print('Confidence intervals laplace 1 : ', (ICS1_24_l1.T,ICS2_24_l1.T))
+    print('Confidence intervals laplace 2 : ', (ICS1_24_l2.T,ICS2_24_l2.T))
+    print('Training time:   ', training_time )
+    print('Test time:   ',  testing_time)
+    #==========================================================================
     Results['R224'] = r2_24gp
     Results['mapes'] = mapes
     Results['mapemedio'] = mapemedio 
@@ -249,9 +305,9 @@ for archivo in range(len(onlyfiles)):
     file_results = Path.Path.joinpath(ResultsPath,file_name+"_results")
     file_model = Path.Path.joinpath(ResultsPath,file_name+"_model")
     file_data = Path.Path.joinpath(ResultsPath,file_name+"_data")
-    save_obj(RESULTS, file_results.as_posix())
-    save_obj(RESULTS, file_model.as_posix())
-    save_obj(DATA, file_data.as_posix())
+    #save_obj(RESULTS, file_results.as_posix())
+    #save_obj(RESULTS, file_model.as_posix())
+    #save_obj(DATA, file_data.as_posix())
 
 
 

@@ -73,19 +73,20 @@ from outliers_removal import outliers_removal
 from load_configuration import load_configuration
 from print_configuration import print_configuration
 from correcting_factor_cov import correcting_factor_cov
+from predictive_variance_white import predictive_variance_white
 from to_torch import to_torch
 # #Load Power Load Data =========================================================
 # #==============================================================================
 method = "NMF"  # Full
 methodfile = 'NMF'
 kernel_type = "rbf"
-forecast_method = "gp_ind_ori" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
+forecast_method = "gpk" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
 option_lv = "gp_ind_ori" # gp_ind_ori/gpmt
 if forecast_method == "gpk":
     name_forecast_method = forecast_method +"_" +option_lv
 else:
     name_forecast_method = forecast_method
-EXPERIMENT = 3  # This has to do with the verion of the NMF generated
+EXPERIMENT = 2  # This has to do with the verion of the NMF generated
 TaskNumber = 24
 Stand = True
 #folder_data_name = "Exp_"+str(EXPERIMENT)
@@ -176,15 +177,12 @@ for archivo in range(len(onlyfiles)):
     if forecast_method == "gpk": 
         [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPind_ori(XTest_S,like,model)
         [_, YPredicted_24gp_K,VPredicted_24gp_K]=DeStandarizeData(YTest_K_S,YPredictedS_KgpS,scalerY_K,VPredicted_Kgp_S,Standarize = Stand)
-        a = correcting_factor_cov(model,WTrain,YTrain[ind_val,:],XTrain_S[ind_val,:],option_lv,scalerY_K)
-        [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPK(YPredicted_24gp_K,VPredicted_Kgp_S,WTrain,Stds_train_load = Stds_train_load,a = a)
+        [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPK(YPredicted_24gp_K,VPredicted_Kgp_S,WTrain,Stds_train_load = Stds_train_load)
     end = time.time() 
     testing_time = end-start
     #=========================================================================
     #[YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind(XTest_S,like_train_24ind,model_train_24ind)
     #[YPredicted_24gp_ind_S,VPredicted_24gp_ind_S] = predGPind_lap(XTest_S,like_train_24ind,model_train_24ind)
-
-    
     if forecast_method == "gpk": 
 
         # TRANSFORMATION====
@@ -201,18 +199,15 @@ for archivo in range(len(onlyfiles)):
         NoiseEstimation_Variance3  = torch.var((ErrorValidation_std@WTrain.T)*Snorm_val,axis=0) 
         
         VPredicted_24gp = torch.zeros((Ntest,24))
+        
+        a = correcting_factor_cov(model,WTrain,YTrain_24[ind_val,:],XTrain_S[ind_val,:],option_lv,scalerY_K,NoiseEstimation_Variance3,Stds_train_load )
         for ss in range(0,Ntest):
             VPredicted_24gp[ss,:] = (torch.diag(WTrain@torch.diag(VPredicted_24gp_K[ss,:])@WTrain.T)*(S2norm.ravel())  +  NoiseEstimation_Variance3)/24
+        VPredicted_24gp_white = predictive_variance_white(VPredicted_24gp_K,WTrain,NoiseEstimation_Variance3,S2norm)
     else:
         [_, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)
 
 
-
-
-    
-    
-
-    
 
 
 

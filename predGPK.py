@@ -20,15 +20,12 @@ def predGPK(mean_k,var_covar_k,Wtrain_s,**kwargs):
     
     #Stds_train_load = kwargs["Stds_train_load"]
     Stds_train_load = kwargs.get("Stds_train_load", None)
-    a = kwargs.get("a", None)
     if(Stds_train_load is not None):
         Stds_train_load = to_torch(Stds_train_load)
         Wtrain = Stds_train_load.repeat(1,K)*Wtrain_s
     if(Stds_train_load is None):
         Wtrain = Wtrain_s
-    if(Stds_train_load is None):
-        a = 1
-        print("Correcting factor not added")
+
     mean = mean_k@Wtrain.T                  # F x N
 
     variances = torch.zeros(Nt,F)
@@ -40,5 +37,5 @@ def predGPK(mean_k,var_covar_k,Wtrain_s,**kwargs):
             variances[nt,:] = torch.diag(Wtrain@torch.diag(torch.diag(var_covar_k[nt,:,:]))@Wtrain.T)
     else:
         print("Input error in 'predGPK. Wrong shape'")
-    #variances = variances/a
+
     return mean,variances

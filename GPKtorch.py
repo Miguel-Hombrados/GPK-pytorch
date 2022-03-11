@@ -24,7 +24,7 @@ def GPKtorch(x,y,W,n_tasks,kernel_type,option_lv,opt_parameters):
     [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=valsize, train_size=trainsize, random_state=47, shuffle=True, stratify=None)
     train_x = train_x[:,0:-1]
     val_x  = val_x[:,0:-1]
-    ind_val = val_x[:,-1]
+    ind_val = [int(f) for f  in val_x[:,-1]]
     
     if option_lv == "gp_ind_ori":
         [MODELS,LIKELIHOODS,Results,Opt_model,Opt_likelihood] = GPind_ori(train_x,train_y,n_tasks,kernel_type,opt_parameters)

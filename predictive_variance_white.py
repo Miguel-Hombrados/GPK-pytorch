@@ -22,8 +22,8 @@ def predictive_variance_white(Variances,W,Var_ErrorNMF,VarNMF):
     VarNMF = VarNMF.ravel()
     
     for ss in range(0,Ntest):
-       var_un = torch.diag(W@A@torch.diag(Variances[ss,:])@A.T@W.T) + Var_ErrorNMF
-       Variances24[ss,:] = var_un*VarNMF
+       var_un = torch.diag(W@A@torch.diag(Variances[ss,:])@A.T@W.T)*VarNMF + Var_ErrorNMF
+       Variances24[ss,:] = var_un
     return Variances24
     
     

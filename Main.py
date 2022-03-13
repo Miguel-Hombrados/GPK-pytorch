@@ -73,31 +73,34 @@ from outliers_removal import outliers_removal
 from load_configuration import load_configuration
 from print_configuration import print_configuration
 from correcting_factor_cov import correcting_factor_cov
+from correcting_factor_cov_beta import correcting_factor_cov_beta
+from correcting_factor_cov_gamma import correcting_factor_cov_gamma
 from predictive_variance_white import predictive_variance_white
+from GP24I_v4 import GP24I
 from to_torch import to_torch
 # #Load Power Load Data =========================================================
 # #==============================================================================
 method = "NMF"  # Full
 methodfile = 'NMF'
 kernel_type = "rbf"
-forecast_method = "gpk" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
+forecast_method = "gp_ind_ori" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
 option_lv = "gp_ind_ori" # gp_ind_ori/gpmt
 if forecast_method == "gpk":
     name_forecast_method = forecast_method +"_" +option_lv
 else:
     name_forecast_method = forecast_method
-EXPERIMENT = 2  # This has to do with the verion of the NMF generated
+EXPERIMENT = 17#2  # This has to do with the verion of the NMF generated
 TaskNumber = 24
 Stand = True
-#folder_data_name = "Exp_"+str(EXPERIMENT)
-folder_data_name = "BuenosResNMF"
+folder_data_name = "Exp_"+str(EXPERIMENT)
+#folder_data_name = "BuenosResNMF"
 #LOCATIONS = ['ME','CT','NH','RI','NEMASSBOST','SEMASS','VT','WCMASS']
 
 datapath = Path.Path.joinpath(ProjectPath,"Data",folder_data_name)
 DATAPATH = str(datapath)
 onlyfilesALL = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 
-[onlyfiles,opt_parameters] = load_configuration(sys.argv,onlyfilesALL)    
+[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
 print_configuration(name_forecast_method,kernel_type,EXPERIMENT,Stand,folder_data_name)
 
 
@@ -164,6 +167,9 @@ for archivo in range(len(onlyfiles)):
     if forecast_method == "gpk": 
         K = YTrain.size(1)
         [M,L,RESULTS,model,like,ind_val] = GPKtorch(XTrain_S,YTrain_K_S,WTrain,K,kernel_type,option_lv,opt_parameters)
+        
+        #kernel =  C(10, (0.1, 200))*RBF(10, (10,200)) +C(1e-1, (1e-7, 10))  + WhiteKernel(noise_level=1e-3, noise_level_bounds=(1e-8, 1))
+        #[YPredictedS_24gpS, VPredictedS_24gpS,model,Opt_alpha, IC1, IC2, Errors, R2s, MAPEs,VarsALL,Errors_train,R2strain,Error2Validation,ErrorValidation,NoiseParameters,YvalsOpt,Y_predValsOpt,Covpredicted_Best,training_time,val_time,test_time] = GP24I(XTrainS,YTrainS,XTestS,kernel,TaskNumber,Alphas)   
     end = time.time() 
     training_time = end-start
     # TESTING==================================================================
@@ -191,6 +197,7 @@ for archivo in range(len(onlyfiles)):
         Snorm_tr  = Stds_train_load.T.repeat(Ntrain,1)
      
         ErrorValidation_std = torch.stack(RESULTS['ValidationErrors'],dim =1)
+        ErrorValidation_std_P = torch.stack(RESULTS['ValidationPredictiveErrors'],dim =1)
         YPredicted_24gp = (YPredicted_24gp_K@WTrain.T)*Snorm
       
         Nval = ErrorValidation_std.size(0)
@@ -200,9 +207,13 @@ for archivo in range(len(onlyfiles)):
         
         VPredicted_24gp = torch.zeros((Ntest,24))
         
-        a = correcting_factor_cov(model,WTrain,YTrain_24[ind_val,:],XTrain_S[ind_val,:],option_lv,scalerY_K,NoiseEstimation_Variance3,Stds_train_load )
+        #ind_a = ind_val
+        ind_a = np.random.permutation(range(0,Ntrain))[0:100]
+        a = correcting_factor_cov(model,WTrain,YTrain_24[ind_a,:],XTrain_S[ind_a,:],option_lv,scalerY_K,NoiseEstimation_Variance3,Stds_train_load )
+        a_beta = correcting_factor_cov_beta(model,WTrain,YTrain_24[ind_a,:],XTrain_S[ind_a,:],option_lv,scalerY_K,NoiseEstimation_Variance3,Stds_train_load )
+        a_gamma = correcting_factor_cov_gamma(model,WTrain,YTrain_24[ind_a,:],XTrain_S[ind_a,:],option_lv,scalerY_K,NoiseEstimation_Variance3,Stds_train_load )
         for ss in range(0,Ntest):
-            VPredicted_24gp[ss,:] = (torch.diag(WTrain@torch.diag(VPredicted_24gp_K[ss,:])@WTrain.T)*(S2norm.ravel())  +  NoiseEstimation_Variance3)/24
+            VPredicted_24gp[ss,:] = (torch.diag(WTrain@torch.diag(VPredicted_24gp_K[ss,:])@WTrain.T)*(S2norm.ravel())  +  NoiseEstimation_Variance3)*a
         VPredicted_24gp_white = predictive_variance_white(VPredicted_24gp_K,WTrain,NoiseEstimation_Variance3,S2norm)
     else:
         [_, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)

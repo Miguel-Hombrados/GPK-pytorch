@@ -19,9 +19,9 @@ def opt_example(model,likelihood):
             model['task{}'.format(task+1)].covar_module.kernels[0].outputscale = ct[task].kernel_.k1.k1.k1.constant_value
             model['task{}'.format(task+1)].covar_module.kernels[0].base_kernel.lengthscale = ct[task].kernel_.k1.k1.k2.length_scale
             model['task{}'.format(task+1)].covar_module.kernels[1].bias  = ct[task].kernel_.k1.k2.constant_value
-            model['task{}'.format(task+1)].likelihood.noise_covar.noise = ct[task].kernel_.k2.noise_level
+            model['task{}'.format(task+1)].likelihood.noise_covar.noise = ct[task].kernel_.k2.noise_level + torch.tensor([1e-6])
             
-            likelihood['task{}'.format(task+1)].noise_covar.noise = ct[task].kernel_.k2.noise_level
+            likelihood['task{}'.format(task+1)].noise_covar.noise = ct[task].kernel_.k2.noise_level+ torch.tensor([1e-6])
             
             model['task{}'.format(task+1)].mean_module.constant = torch.nn.Parameter(torch.tensor([0.0], requires_grad=True))
             

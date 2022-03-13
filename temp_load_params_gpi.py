@@ -29,6 +29,18 @@ model.covar_module.kernels[0].base_kernel.raw_outputscale.grad
 for task in range(1,8):
 
     #print("lenthscale",model['task{}'.format(task)].covar_module.kernels[0].base_kernel.lengthscale)
-    #print("outputscale",model['task{}'.format(task)].covar_module.kernels[0].outputscale)
-    #print("bias",model['task{}'.format(task)].covar_module.kernels[1].bias)
+    print("outputscale",model['task{}'.format(task)].covar_module.kernels[0].outputscale)
+    print("bias",model['task{}'.format(task)].covar_module.kernels[1].bias)
     print("noise",model['task{}'.format(task)].likelihood.noise)
+    print("mean",model['task{}'.format(task)].mean_module.constant)
+    
+    
+    
+
+for task in range(1,8):
+
+    print("lenthscale",model['task{}'.format(task)].covar_module.base_kernel.lengthscale)
+    print("outputscale",model['task{}'.format(task)].covar_module.outputscale)
+    print("bias",model['task{}'.format(task)].covar_module.bias)
+    print("noise",model['task{}'.format(task)].likelihood.noise)
+    print("mean",model['task{}'.format(task)].mean_module.constant)

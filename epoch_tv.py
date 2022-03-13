@@ -5,6 +5,7 @@ Created on Sun Feb  6 16:49:14 2022
 @author: mahom
 """
 import torch
+from predGPind_ori import predGPind_ori
 def train_epoch(model,data,mll,optimizer):
     train_loss=0.0
     model.train()
@@ -34,5 +35,9 @@ def valid_epoch(model,likelihood,output,data,mll):
    
    y_val_est  = likelihood(f_val_est)
    valid_error = val_y-y_val_est.mean
+   
+   #[ypred_val] = predGPind_ori(val_x,[likelihood],[model])
+   #val_pred_error = ypred_val - val_y
+   val_pred_error = 0
 
-   return valid_loss,valid_error
+   return valid_loss,valid_error,val_pred_error

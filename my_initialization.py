@@ -22,18 +22,23 @@ def my_initialization(model,likelihood,kernel_type,task_num,method):
             model.covar_module.kernels[0].base_kernel.lengthscale = 35*torch.ones(task_num,1,1,requires_grad=True) # probar 96.5                #3
             model.covar_module.kernels[1].bias = 0.3*torch.ones(task_num,requires_grad=True)   
             
-        if method == "gpi_ori": 
-            if kernel_type == "linear":
-                 #model.likelihood.noise = torch.tensor(0.1)
-                 model.likelihood.task_noises = 1e-1*torch.ones(task_num,requires_grad=True)                               
-                 model.covar_module.kernels[0].base_kernel.outputscale = 10*torch.ones(task_num,requires_grad=True)             
-                 model.covar_module.kernels[0].base_kernel.variance = 10*torch.ones(task_num,1,1,requires_grad=True)             
-                 model.covar_module.kernels[1].bias = 1e-5*torch.ones(task_num,1,1,requires_grad=True)         
-            if kernel_type == "rbf":
-                model.covar_module.kernels[0].outputscale = 45*torch.ones(task_num,requires_grad=True)  
-                model.likelihood.task_noises = 0.1*torch.ones(task_num,requires_grad=True)                                                        # 0.5
-                model.covar_module.kernels[0].base_kernel.lengthscale = 35*torch.ones(task_num,1,1,requires_grad=True) # probar 96.5                #3
-                model.covar_module.kernels[1].bias = 0.5*torch.ones(task_num,requires_grad=True)   
-                
-
+    elif method == "gpi_ori": 
+        if kernel_type == "linear":
+             #model.likelihood.noise = torch.tensor(0.1)
+             model.likelihood.noise = 1e-1*torch.ones(task_num,requires_grad=True)                               
+             model.covar_module.kernels[0].base_kernel.outputscale = 10*torch.ones(task_num,requires_grad=True)             
+             model.covar_module.kernels[0].base_kernel.variance = 10*torch.ones(task_num,1,1,requires_grad=True)             
+             model.covar_module.kernels[1].bias = 1e-5*torch.ones(task_num,1,1,requires_grad=True)         
+        if kernel_type == "rbf":
+            model.covar_module.kernels[0].outputscale = 45*torch.ones(task_num,requires_grad=True)  
+            model.likelihood.noise = 0.1*torch.ones(task_num,requires_grad=True)                                                        # 0.5
+            model.covar_module.kernels[0].base_kernel.lengthscale = 35*torch.ones(task_num,1,1,requires_grad=True) # probar 96.5                #3
+            model.covar_module.kernels[1].bias = 0.5*torch.ones(task_num,requires_grad=True)  
+            #model.mean_module.constant = torch.nn.Parameter(torch.tensor(0.))
+            model.mean_module.initialize(constant=0.)
+            #model.mean_module.constant = torch.zeros(())
+            
+            #model.covar_module.outputscale = 45*torch.ones(task_num,requires_grad=True)  
+            #model.likelihood.task_noises = 0.1*torch.ones(task_num,requires_grad=True)                                                        # 0.5
+            #model.covar_module.base_kernel.lengthscale = 35*torch.ones(task_num,1,1,requires_grad=True) # probar 96.5 
 

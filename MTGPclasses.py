@@ -79,7 +79,7 @@ class ExactGPModel_single(gpytorch.models.ExactGP):
         n_batch = 1
         super(ExactGPModel_single, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
-        self.mean_module.initialize(constant=0.)
+        #self.mean_module.initialize(constant=0.)
         if  kernel_type == 'rbf':
             kernel_cov =  gpytorch.kernels.RBFKernel()
         if  kernel_type == 'linear':

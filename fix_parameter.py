@@ -26,7 +26,7 @@ def fix_parameter(model,kernel_type,method):
             model.likelihood.noise = shared_noise_variance
             new_parameters = set(list(model.parameters()))-{model.likelihood.raw_noise}
             #new_parameters = set(list(model.parameters()))
-    if method == "gpi_ori": 
+    elif method == "gpi_ori": 
             if kernel_type == "rbf":
                 new_parameters = set(list(model.parameters()))-{model.mean_module.constant}
     return model,new_parameters

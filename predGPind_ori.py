@@ -30,7 +30,7 @@ def predGPind_ori(test_x,likelihoods,models):
         likelihood_k.eval()
 
 
-        with torch.no_grad(), gpytorch.settings.fast_pred_var():
+        with torch.no_grad(): #, gpytorch.settings.fast_pred_var():
             predictions = likelihood_k(model_k(test_x))
             mean_k = predictions.mean
             var_k = predictions.variance

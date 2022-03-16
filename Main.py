@@ -102,7 +102,7 @@ datapath = Path.Path.joinpath(ProjectPath,"Data",folder_data_name)
 DATAPATH = str(datapath)
 onlyfilesALL = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 
-[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
+#[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
 [onlyfiles,opt_parameters, forecast_method, option_lv] = load_configuration_job_array(sys.argv,onlyfilesALL)
 
 

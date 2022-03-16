@@ -20,11 +20,16 @@ def GPKtorch(x,y,W,n_tasks,kernel_type,option_lv,opt_parameters):
     y = to_torch(y)
     
      
-    x = torch.cat((x,torch.Tensor(range(0,x.size(0))).reshape(-1,1)),dim=1)
-    [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=valsize, train_size=trainsize, random_state=47, shuffle=True, stratify=None)
-    train_x = train_x[:,0:-1]
-    val_x  = val_x[:,0:-1]
-    ind_val = [int(f) for f  in val_x[:,-1]]
+    if trainsize != 1:
+        x = torch.cat((x,torch.Tensor(range(0,x.size(0))).reshape(-1,1)),dim=1)
+        [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=valsize, train_size=trainsize, random_state=47, shuffle=True, stratify=None)
+        train_x = train_x[:,0:-1]
+        val_x  = val_x[:,0:-1]
+        ind_val = [int(f) for f  in val_x[:,-1]]
+    else:
+        ind_val = None
+        train_x = x
+        train_y = y
     
     if option_lv == "gp_ind_ori":
         [MODELS,LIKELIHOODS,Results,Opt_model,Opt_likelihood] = GPind_ori(train_x,train_y,n_tasks,kernel_type,opt_parameters)

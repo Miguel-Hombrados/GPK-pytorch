@@ -13,11 +13,11 @@ def load_configuration(input_params,onlyfilesALL,forecast_method):
     opt_parameters ={}
     if len(input_params)==1:
         print('Running default parameters and all locations')
-        opt_parameters['lr1'] = 0.02
+        opt_parameters['lr1'] = 0.01
         opt_parameters['lr2'] = 0.01
         opt_parameters['n_restarts'] = 5
-        opt_parameters['num_iter']  = 100
-        opt_parameters['trainsize'] = 0.8
+        opt_parameters['num_iter']  = 10
+        opt_parameters['trainsize'] = 0.96
         onlyfiles = onlyfilesALL
     elif len(input_params)==2: 
         opt_parameters['lr1'] = 0.02

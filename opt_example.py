@@ -7,14 +7,16 @@ Created on Sat Feb 19 20:13:29 2022
 import torch 
 from load_obj import load_obj
 def opt_example(model,likelihood):    
-    DATA = load_obj("C:/Users/mahom/Desktop/GPt24_Full__std_y_allLocations.pkl");
+    #DATA = load_obj("C:/Users/mahom/Desktop/GPt24_Full__std_y_allLocations.pkl");
+    DATA = load_obj("C:/Users/mahom/Desktop/GPK_NMF_std_y_allLocations.pkl");
     M = DATA['MODELS_ALL']
     ct = M[3]
     AL = DATA['Alphas_ALL']
     
-    for task in range(0,24):
+    n_tasks = len(ct)
+    for task in range(0,n_tasks):
         print(ct[task].kernel_)
-    for task in range(0,24):
+    for task in range(0,n_tasks):
         with torch.no_grad():
             model['task{}'.format(task+1)].covar_module.kernels[0].outputscale = ct[task].kernel_.k1.k1.k1.constant_value
             model['task{}'.format(task+1)].covar_module.kernels[0].base_kernel.lengthscale = ct[task].kernel_.k1.k1.k2.length_scale

@@ -5,12 +5,11 @@ Created on Sun Feb  6 16:49:14 2022
 @author: mahom
 """
 import torch
+import gpytorch
 from predGPind_ori import predGPind_ori
 def train_epoch(model,data,mll,optimizer):
     train_loss=0.0
     model.train()
-
-
 
     (train_x,train_y) = data 
     optimizer.zero_grad()
@@ -18,7 +17,6 @@ def train_epoch(model,data,mll,optimizer):
     loss = -mll(output, train_y)
     loss.backward()
     optimizer.step()
-
 
     train_loss = loss.item() * train_x.size(0)
 
@@ -32,12 +30,14 @@ def valid_epoch(model,likelihood,output,data,mll):
    loss = -mll(f_val_est,val_y)
    valid_loss=loss.item()*val_x.size(0)
    
-   
    y_val_est  = likelihood(f_val_est)
    valid_error = val_y-y_val_est.mean
-   
-   #[ypred_val] = predGPind_ori(val_x,[likelihood],[model])
-   #val_pred_error = ypred_val - val_y
-   val_pred_error = 0
+   #===predictive distribution=================================
+   model.eval()
+   likelihood.eval()
+   with torch.no_grad(): #, gpytorch.settings.fast_pred_var():
+        predictions = likelihood(model(val_x))
+        ypred_val = predictions.mean
+        val_pred_error = ypred_val - val_y
 
    return valid_loss,valid_error,val_pred_error

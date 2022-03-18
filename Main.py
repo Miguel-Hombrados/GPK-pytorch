@@ -102,8 +102,8 @@ datapath = Path.Path.joinpath(ProjectPath,"Data",folder_data_name)
 DATAPATH = str(datapath)
 onlyfilesALL = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 
-#[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
-[onlyfiles,opt_parameters, forecast_method, option_lv] = load_configuration_job_array(sys.argv,onlyfilesALL)
+[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
+#[onlyfiles,opt_parameters, forecast_method, option_lv] = load_configuration_job_array(sys.argv,onlyfilesALL)
 
 
 gpytorch.settings.max_cg_iterations._set_value(10000)
@@ -185,7 +185,7 @@ for archivo in range(len(onlyfiles)):
     if forecast_method == "gpk": 
         [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPind_ori(XTest_S,like,model)
         [_, YPredicted_24gp_K,VPredicted_24gp_K]=DeStandarizeData(YTest_K_S,YPredictedS_KgpS,scalerY_K,VPredicted_Kgp_S,Standarize = Stand)
-        [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPK(YPredicted_24gp_K,VPredicted_Kgp_S,WTrain,Stds_train_load = Stds_train_load)
+        #YPredictedS_KgpS,VPredicted_Kgp_S] = predGPK(YPredicted_24gp_K,VPredicted_Kgp_S,WTrain,Stds_train_load = Stds_train_load)
     end = time.time() 
     testing_time = end-start
     #=========================================================================
@@ -241,7 +241,6 @@ for archivo in range(len(onlyfiles)):
     
     if 'ValidationErrors' in RESULTS:
         Lval = RESULTS['ValidationErrors']
-        print_extra_methods(Stds_train_load,Ntest,Ntrain,WTrain,YTrain_24,YTest_24,XTrain_S,YPredicted_24gp_K,VPredicted_24gp_K,option_lv,scalerY_K,RESULTS,model,DATA)
         Lval_tasks = [torch.mean(x) for x in Lval]
         Lval_mean = torch.mean(torch.tensor(Lval_tasks))
         print('Mean validation loss ',Lval_mean)

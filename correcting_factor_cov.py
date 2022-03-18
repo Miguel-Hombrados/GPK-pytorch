@@ -15,7 +15,7 @@ def correcting_factor_cov(model,Ws,Yval,Xval,option_lv,scalerY_K,Var_ErrorNMF,St
     
     Nval = Yval.size(0)
     n_task = len(model)
-    yval = Yval.reshape(-1,1)
+    yval = Yval.T.reshape(-1,1)
     W = Std_nmf*Ws
     #Wp = to_torch(np.kron(torch.eye(Nval),W))
     Wp = to_torch(np.kron(W,torch.eye(Nval)))
@@ -37,7 +37,7 @@ def correcting_factor_cov(model,Ws,Yval,Xval,option_lv,scalerY_K,Var_ErrorNMF,St
     meansH = torch.Tensor(meansH_list).reshape(-1,1)
     Mstd = meansH.repeat(1,Nval)
     M = (W@(Mstd*StdK+meanK)).T  # N x 24
-    m = M.reshape(-1,1)
+    m = M.T.reshape(-1,1)
     yval_cent = yval - m
  # Las matrices deberian ser positivas definidas.
     #Kyi = torch.inverse(Wp@SigmaH@Wp.T+1e-3*torch.eye(24*Nval)) # Noise estimation en lugar de eye

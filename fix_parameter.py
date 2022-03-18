@@ -29,6 +29,7 @@ def fix_parameter(model,kernel_type,method):
     elif method == "gpi_ori": 
             if kernel_type == "rbf":
                 new_parameters = set(list(model.parameters()))-{model.mean_module.constant}
+                model.mean_module.initialize(constant=0.)
     return model,new_parameters
            
         

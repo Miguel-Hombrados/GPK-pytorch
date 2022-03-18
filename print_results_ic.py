@@ -18,9 +18,9 @@ def print_results_ic(YPred24,YTest24,VarPred24,method):
     print("===========================================================================")
     print("===========================================================================")
     print(method)
-    print('Confidence intervals Mean  : ',(torch.mean(ICS1_l1.T),torch.mean(ICS2_l1.T)))
-    print('Confidence intervals laplace 1  Mean: ', (torch.mean(ICS1_l2.T),torch.mean(ICS2_l2.T)))
-    print('Confidence intervals laplace 2 Mean : ', (torch.mean(ICS1.T),torch.mean(ICS2.T)))
+    print('Confidence intervals Mean  : ',(torch.mean(ICS1.T),torch.mean(ICS2.T)))
+    print('Confidence intervals laplace 1  Mean: ', (torch.mean(ICS1_l1.T),torch.mean(ICS2_l1.T)))
+    print('Confidence intervals laplace 2 Mean : ', (torch.mean(ICS1_l2.T),torch.mean(ICS2_l2.T)))
     print("===========================================================================")
     print("===========================================================================")
     

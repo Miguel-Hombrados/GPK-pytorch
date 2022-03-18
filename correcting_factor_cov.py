@@ -17,8 +17,8 @@ def correcting_factor_cov(model,Ws,Yval,Xval,option_lv,scalerY_K,Var_ErrorNMF,St
     n_task = len(model)
     yval = Yval.reshape(-1,1)
     W = Std_nmf*Ws
-    Wp = to_torch(np.kron(torch.eye(Nval),W))
-    #Wp = to_torch(np.kron(W,torch.eye(Nval)))
+    #Wp = to_torch(np.kron(torch.eye(Nval),W))
+    Wp = to_torch(np.kron(W,torch.eye(Nval)))
     VarK = scalerY_K.var_
     StdK = torch.sqrt(torch.Tensor(scalerY_K.var_)).reshape(-1,1)
     meanK = torch.Tensor(scalerY_K.mean_).reshape(-1,1)

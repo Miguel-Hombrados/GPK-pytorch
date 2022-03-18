@@ -14,6 +14,7 @@ from MTGPclasses import ExactGPModel_single
 from sklearn.model_selection import train_test_split
 from fix_parameter import fix_parameter
 from my_initialization import my_initialization
+from random_initialization import random_initialization
 from epoch_tv import train_epoch,valid_epoch
 
 
@@ -65,11 +66,17 @@ def GPind_ori_aux1(x,y,n_tasks,kernel_type,opt_parameters):
               likelihood = gpytorch.likelihoods.GaussianLikelihood()
               model = ExactGPModel_single(train_x, train_y_t, likelihood, kernel_type)# FUNCIONARIA SIN train_x, como en la gaussiana?
               
+              
               fix_constraints(model,likelihood,kernel_type,1,"gpi_ori")
-              hypers = my_initialization(model,likelihood,kernel_type,1,"gpi_ori")
-                  
+              
+              if rest == 0:
+                  my_initialization(model,likelihood,kernel_type,1,"gpi_ori")
+              else: 
+                  random_initialization(model,likelihood,kernel_type,1,"gpi_ori")
               # Fix redundant parameters
               [model,new_parameters] = fix_parameter(model,kernel_type,"gpi_ori")
+              model.mean_module.initialize(constant=0.)
+        
               # Use the adam optimizer
               #new_parameters = model.parameters()
               

@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from fix_parameter import fix_parameter
 from my_initialization import my_initialization
 from epoch_tv import train_epoch,valid_epoch
-
+from random_initialization import random_initialization
 
 def GPind_ori_aux2(x,y,n_tasks,kernel_type,opt_parameters):
 
@@ -54,10 +54,13 @@ def GPind_ori_aux2(x,y,n_tasks,kernel_type,opt_parameters):
              
                 
               fix_constraints(model,likelihood,kernel_type,1,"gpi_ori")
-              hypers = my_initialization(model,likelihood,kernel_type,1,"gpi_ori")
+              if rest == 0:
+                  my_initialization(model,likelihood,kernel_type,1,"gpi_ori")
+              else: 
+                  random_initialization(model,likelihood,kernel_type,1,"gpi_ori")
               # Fix redundant parameters
               [model,new_parameters] = fix_parameter(model,kernel_type,"gpi_ori")
-
+              model.mean_module.initialize(constant=0.)
               optimizer = torch.optim.Adam(new_parameters , lr=learning_rate)  # Includes GaussianLikelihood parameters
 
               history_t = {'train_loss': [], 'n_opt_iter': []}

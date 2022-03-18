@@ -19,12 +19,13 @@ def predGPK(mean_k,var_covar_k,Wtrain_s,**kwargs):
     Nt = mean_k.size(dim=0)
     
     #Stds_train_load = kwargs["Stds_train_load"]
-    Stds_train_load = kwargs.get("Stds_train_load", None)
-    if(Stds_train_load is not None):
-        Stds_train_load = to_torch(Stds_train_load)
-        Wtrain = Stds_train_load.repeat(1,K)*Wtrain_s
-    if(Stds_train_load is None):
-        Wtrain = Wtrain_s
+    # Stds_train_load = kwargs.get("Stds_train_load", None)
+    # if(Stds_train_load is not None):
+    #     Stds_train_load = to_torch(Stds_train_load)
+    #     Wtrain = Stds_train_load.repeat(1,K)*Wtrain_s
+    # if(Stds_train_load is None):
+    #     Wtrain = Wtrain_s
+    Wtrain = Wtrain_s
 
     mean = mean_k@Wtrain.T                  # F x N
 

@@ -271,9 +271,9 @@ for archivo in range(len(onlyfiles)):
     file_results = Path.Path.joinpath(ResultsPath,file_name+"_results")
     file_model = Path.Path.joinpath(ResultsPath,file_name+"_model")
     file_data = Path.Path.joinpath(ResultsPath,file_name+"_data")
-    #save_obj(RESULTS, file_results.as_posix())
-    #save_obj(model, file_model.as_posix())
-    #save_obj(DATA, file_data.as_posix())
+    save_obj(RESULTS, file_results.as_posix())
+    save_obj(model, file_model.as_posix())
+    save_obj(DATA, file_data.as_posix())
 
 
 

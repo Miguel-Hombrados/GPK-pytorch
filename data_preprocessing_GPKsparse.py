@@ -28,8 +28,8 @@ sys.path.append(
 from BufferData import BufferData
 from save_obj import save_obj
 
-EXPERIMENT = 1
-exp_name = 'Exp_'+'Exp_interp_1_'+str(EXPERIMENT)
+EXPERIMENT = 2
+exp_name = 'Exp_interp_1_'+str(EXPERIMENT)
 folderpath = Path.Path.joinpath(DataPath ,exp_name,'NMF')
 Delay = 7
 
@@ -60,6 +60,13 @@ for archivo in range(len(onlyfiles)):
        
        
     if features == 'load':
+    #==================================================================
+    LabelClass = ReducedData['LabelClass'] 
+    LabelClass_test = ReducedData['LabelClass_test'] 
+    NamesLabelsClass = ReducedData['NamesLabelsClass'] 
+    NamesLabelsClass_test = ReducedData['NamesLabelsClass_test'] 
+    
+    #==================================================================
         Load_test = Data_Test['Load'].T                         # 24 x Ntest
         Load_Train_Val = Data_Train_Val['Load'].T               # 24 x Ntrain
         
@@ -90,6 +97,7 @@ for archivo in range(len(onlyfiles)):
     #==================================================================
     
     Stds_train_load = ReducedData['Stds_train_load']            # 24 x 1
+    
     # SAVE ==================================================
     Info = {'location':location,'method':method,'stdnmf':stdnmf,'Ninit':Ninit,'normW':normW,'P':P,'features':features,'Exp':EXPERIMENT,'Delay':Delay}
     

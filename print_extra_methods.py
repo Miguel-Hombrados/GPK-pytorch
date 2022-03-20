@@ -25,7 +25,7 @@ def print_extra_methods(Stds_train_load,Ntest,Ntrain,WTrain,YTrain_24,YTest_24,X
     # option_lv: option of latent variable in gpk
     
 #==============================================================================
-    Nsamples_factor = 1000
+    Nsamples_factor = 1400
     ind_a = np.random.permutation(range(0,Ntrain))[0:Nsamples_factor] 
 
     S2norm = torch.pow(Stds_train_load,2)
@@ -106,4 +106,17 @@ def print_extra_methods(Stds_train_load,Ntest,Ntrain,WTrain,YTrain_24,YTest_24,X
             VPredicted_24gp[ss,:] = (torch.diag(WTrain@torch.diag(VPredicted_24gp_K[ss,:])@WTrain.T)*(S2norm.ravel())  +  OptTrainVar_F)*a
         _,_,_  = print_results_ic(YPredicted_24gp,YTest_24, VPredicted_24gp,"8-Correcting factor with NMF training error variance")
         print("1/a: ", 1/a)
-        
+        #Combination=======================================================
+        a = correcting_factor_cov(model,WTrain,YTrain_24[ind_a,:],XTrain_S[ind_a,:],option_lv,scalerY_K,OptTrainVar_F,Stds_train_load)
+        VPredicted_24gp = torch.zeros((Ntest,24))
+        for ss in range(0,Ntest):
+            VPredicted_24gp[ss,:] = (torch.diag(WTrain@torch.diag(VPredicted_24gp_K[ss,:])@WTrain.T)*(S2norm.ravel())  +  NoiseEstimation_Variance_GPpred)*a
+        _,_,_  = print_results_ic(YPredicted_24gp,YTest_24, VPredicted_24gp,"2- Correcting factor combination")
+        print("1/a: ", 1/a)
+        #Combination2=======================================================
+        a = correcting_factor_cov(model,WTrain,YTrain_24[ind_a,:],XTrain_S[ind_a,:],option_lv,scalerY_K,OptValVar_F,Stds_train_load)
+        VPredicted_24gp = torch.zeros((Ntest,24))
+        for ss in range(0,Ntest):
+            VPredicted_24gp[ss,:] = (torch.diag(WTrain@torch.diag(VPredicted_24gp_K[ss,:])@WTrain.T)*(S2norm.ravel())  +  NoiseEstimation_Variance_GPpred)*a
+        _,_,_  = print_results_ic(YPredicted_24gp,YTest_24, VPredicted_24gp,"2- Correcting factor combination2")
+        print("1/a: ", 1/a)

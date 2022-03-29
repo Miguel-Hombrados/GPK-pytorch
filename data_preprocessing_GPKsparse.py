@@ -15,7 +15,6 @@ import os
 print(os.getcwd())
 ProjectPath = Path.Path.cwd()
 DataPath = Path.Path.joinpath(ProjectPath,'Data')
-PreprocessedDataPath = Path.Path.joinpath(DataPath,'Preprocessed')
 UtilsPath = Path.Path.joinpath(ProjectPath,"utils")
 sys.path.append(
     str(UtilsPath)
@@ -32,9 +31,9 @@ EXPERIMENT = 2
 exp_name = 'Exp_interp_1_'+str(EXPERIMENT)
 folderpath = Path.Path.joinpath(DataPath ,exp_name,'NMF')
 Delay = 7
+PreprocessedDataPath = Path.Path.joinpath(DataPath,exp_name,'Preprocessed')
 
-
-onlyfiles = [f for f in listdir(folderpath)]
+onlyfiles = [f for f in listdir(folderpath) if f.endswith('.mat')]
 features = 'load'
 
 
@@ -53,19 +52,46 @@ for archivo in range(len(onlyfiles)):
     Ninit = str(ReducedData['Ninit'][0])
     normW = str(ReducedData['normW'][0])
     P = str(ReducedData['P'][0])
-    name_file_data_prep = "DATA_Train_Val_"+str(location)+".mat"
-    Data_Train_Val = scipy.io.loadmat(str(Path.Path.joinpath(PreprocessedDataPath,name_file_data_prep)))   # DATA USED FOR TRAINING AND VALIDATING GPs
-    Data_Test = scipy.io.loadmat(str(Path.Path.joinpath(PreprocessedDataPath,name_file_data_prep)))   # DATA USED FOR TRAINING AND VALIDATING GPs
     
-       
+    
+    
+    name_file_data_prep_train = "DATA_Train_Val_11_18_"+str(location)+".mat"
+    name_file_data_prep_test = "DATA_Test_11_18_"+str(location)+".mat"
+    Data_Train_Val = scipy.io.loadmat(str(Path.Path.joinpath(PreprocessedDataPath,name_file_data_prep_train)))   # DATA USED FOR TRAINING AND VALIDATING GPs
+    Data_Test = scipy.io.loadmat(str(Path.Path.joinpath(PreprocessedDataPath,name_file_data_prep_test)))   # DATA USED FOR TRAINING AND VALIDATING GPs
+    
+    AA =    {n: Data_Train_Val[n][0, 0] for n in mdtype.names}
        
     if features == 'load':
     #==================================================================
-    LabelClass = ReducedData['LabelClass'] 
-    LabelClass_test = ReducedData['LabelClass_test'] 
-    NamesLabelsClass = ReducedData['NamesLabelsClass'] 
-    NamesLabelsClass_test = ReducedData['NamesLabelsClass_test'] 
-    
+        LabelClass_aux = ReducedData['LabelClass'] 
+        LabelClass_test_aux = ReducedData['LabelClass_test'] 
+        NamesLabelsClass_aux = ReducedData['NamesLabelsClass'] 
+        NamesLabelsClass_test_aux = ReducedData['NamesLabelsClass_test'] 
+        RegressorsIds_aux = ReducedData['RegressorIds'] 
+        RegressorsIds_test_aux = ReducedData['RegressorIds_test'] 
+        
+        LabelClass = LabelClass_aux[Delay:].tolist()
+        LabelClass_test = LabelClass_test_aux [Delay:].tolist()
+        NamesLabelsClass = NamesLabelsClass_aux[Delay:].tolist()
+        NamesLabelsClass_test = NamesLabelsClass_test_aux[Delay:].tolist()
+        RegressorsIds = RegressorsIds_aux[Delay:].tolist()
+        RegressorsIds_test = RegressorsIds_test_aux[Delay:].tolist()
+
+        Ntrain = len(LabelClass)
+        Ntest = len(LabelClass_test)
+        
+        metaNMFsparse_list = {'LabelClass':LabelClass,
+                         'NamesLabelsClass':NamesLabelsClass,
+                         'RegressorsIds':RegressorsIds
+            }
+        metaNMFsparse_test_list = {'LabelClass_test':LabelClass_test,
+                         'NamesLabelsClass_test':NamesLabelsClass_test,
+                         'RegressorsIds_test':RegressorsIds_test
+            }
+        metaNMFsparse = pd.DataFrame(metaNMFsparse_list,list(range(0,Ntrain)))
+        metaNMFsparse_test = pd.DataFrame(metaNMFsparse_test_list,list(range(0,Ntest)))
+        
     #==================================================================
         Load_test = Data_Test['Load'].T                         # 24 x Ntest
         Load_Train_Val = Data_Train_Val['Load'].T               # 24 x Ntrain
@@ -101,7 +127,9 @@ for archivo in range(len(onlyfiles)):
     # SAVE ==================================================
     Info = {'location':location,'method':method,'stdnmf':stdnmf,'Ninit':Ninit,'normW':normW,'P':P,'features':features,'Exp':EXPERIMENT,'Delay':Delay}
     
-    DATA = {'X_Train_Val':X_Train_Val,'Y_Train_Val':Y_Train_Val,'X_Test': X_Test,'Y_Test_24':Y_Test_24,'Y_Train_Val_24':Y_Train_Val_24,'Wtrain_load':Wtrain_load,'Stds_train_load':Stds_train_load,'Info':Info,'RD':ReducedData}
+    DATA = {'X_Train_Val':X_Train_Val,'Y_Train_Val':Y_Train_Val,'X_Test': X_Test,'Y_Test_24':Y_Test_24,
+            'Y_Train_Val_24':Y_Train_Val_24,'Wtrain_load':Wtrain_load,'Stds_train_load':Stds_train_load,
+            'Info':Info,'RD':ReducedData,'metaNMFsparse':metaNMFsparse,'metaNMFsparse_test':metaNMFsparse_test}
     name_file = "GPK_"+str(method)+"_reduced_dataset_"+str(location)+'_std_'+str(stdnmf)+'_feat_'+str(features) + '_EXP_'+ str(EXPERIMENT)+ '_normW_'+ str(normW)+ '_P_'+ str(P)+ '_Ninit'+ str(Ninit)
     filepath = Path.Path.joinpath(folderpath,name_file)
     save_obj(DATA,str(filepath))

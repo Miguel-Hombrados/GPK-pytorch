@@ -30,6 +30,16 @@ def fix_parameter(model,kernel_type,method):
             if kernel_type == "rbf":
                 new_parameters = set(list(model.parameters()))-{model.mean_module.constant}
                 model.mean_module.initialize(constant=0.)
+    elif method == "gpk_sp": 
+            if kernel_type == "rbf":
+                new_parameters = set(list(model.parameters()))-{model.mean_module.constant}
+                model.mean_module.initialize(constant=0.)
+    elif method == "gpmt": 
+            if kernel_type == "rbf":
+                new_parameters = set(list(model.parameters()))-{model.mean_module.base_means}
+                #model.mean_module.initialize(constant=0.)
+
+        
     return model,new_parameters
            
         

@@ -6,6 +6,7 @@ Created on Sat Jan  1 19:37:27 2022
 """
 
 import torch
+import numpy as np
 import gpytorch
 from to_torch import to_torch
 from MTGPclasses import MultitaskGPModel
@@ -13,58 +14,135 @@ from epoch_tv import train_epoch,valid_epoch
 from sklearn.model_selection import train_test_split
 from fix_constraints import fix_constraints
 from my_initialization import my_initialization
-def GPMT(x,y,n_tasks,kernel_type,option_lv):
+from random_initialization import random_initialization
+from fix_parameter import fix_parameter
+def GPMT(x,y,n_tasks,kernel_type,opt_parameters):
+    
+    
+    learning_rate = opt_parameters['lr1']
+    learning_rate2 = opt_parameters['lr2'] 
+    n_restarts = opt_parameters['n_restarts'] 
+    num_iter = opt_parameters['num_iter'] 
+    trainsize = opt_parameters['trainsize']  
+    valsize = 1.0 - trainsize
     
     x = to_torch(x)
     y = to_torch(y)
-    
-    num_iter = 200
-    learning_rate = 0.01
-    
-    best_niter = {} 
-    [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=0.2, train_size=0.8, random_state=47, shuffle=True, stratify=None)
-    data_train = (train_x,train_y)
-    data_val = (val_x,val_y)
-    
-    likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
-    model = MultitaskGPModel(train_x, train_y, likelihood,n_tasks,kernel_type,option_lv)
-    
-    fix_constraints(model,likelihood,kernel_type,n_tasks,"mt")
-    hypers = my_initialization(model,likelihood,kernel_type,n_tasks,"mt")
-    
-    model.train()
-    likelihood.train()
-    
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)  # Includes GaussianLikelihood parameters
-    
-    history = {'train_loss': [], 'valid_loss': []}
 
-    # "Loss" for GPs - the marginal log likelihood
-    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+    if trainsize !=0:
+        [train_x,val_x, train_y,val_y] = train_test_split(x,y, test_size=valsize, train_size=trainsize, random_state=47, shuffle=True, stratify=None)
 
-    for it in range(0,num_iter):
-        optimizer.zero_grad()
-        train_loss,output = train_epoch(model,data_train,mll,optimizer)
-        [valid_loss,valid_error] = valid_epoch(model,likelihood,output,data_val,mll)
-        
-        
-        train_loss = train_loss / data_train[0].size()[0]
-        valid_loss = valid_loss / data_val[0].size()[0]
-        
-        print("Iter:{}/{} AVG Training Loss:{:.3f} AVG Valid Loss:{:.3f}".format(it + 1,
-                                                                         num_iter,
-                                                                         train_loss,
-                                                                         valid_loss,
-                                                                          ))
-        
-        if it> 1  and valid_loss < torch.min(history['valid_loss']):
-            min_valid_loss = valid_loss
-            n_opt_niter = it + 1
-            best_params = model.state_dict()
-        
-        history['train_loss'].append(train_loss)
-        history['valid_loss'].append(valid_loss)
+    elif trainsize == 1:
+         train_x = x
+         train_y = y
+    data_val = (val_x,val_y)         
 
-    return model, likelihood
+    Results = {}
+    MODELS = {}
+    LIKELIHOODS = {}
     
+    for rest in range(0,n_restarts):
+        print()
+        print("RESTART{}/{}:".format(rest+1,n_restarts))
+        history_t = {}
+        best_params_t = {}
+        n_opt_iter_t = 0
+        min_train_loss = np.Inf
+        data_train_t = (train_x,train_y)
+        n_batch = 1
+        min_valid_loss = np.Inf
+        min_train_loss = np.Inf
     
+        likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
+        model = MultitaskGPModel(train_x, train_y, likelihood,n_tasks,kernel_type)
+        
+        fix_constraints(model,likelihood,kernel_type,1,"gpmt")
+        
+        if rest == 0:
+            my_initialization(model,likelihood,kernel_type,1,"gpmt")
+        else: 
+            random_initialization(model,likelihood,kernel_type,1,"gpmt")
+        # Fix redundant parameters
+        [model,new_parameters] = fix_parameter(model,kernel_type,"gpmt")
+        #model.mean_module.initialize(constant=0.)
+        
+        model.train()
+        likelihood.train()
+        
+        optimizer = torch.optim.Adam(new_parameters, lr=learning_rate)  # Includes GaussianLikelihood parameters
+        
+        if trainsize !=0:
+            history_t = {'train_loss': [], 'valid_loss': [], 'n_opt_iter': [], 'min_valid_loss': []}
+        elif trainsize == 1:
+            history_t = {'train_loss': [], 'n_opt_iter': []}
+    
+        # "Loss" for GPs - the marginal log likelihood
+        mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+    
+        for it in range(0,num_iter):
+            optimizer.zero_grad()
+            train_loss,output = train_epoch(model,data_train_t,mll,optimizer)
+        
+            train_loss = train_loss / data_train_t[0].size()[0]
+            
+            
+            if trainsize == 1:
+                print("Restart: {} Iter:{}/{} AVG Training Loss:{:.3f} ".format(rest+1,it + 1,
+                                                                                 num_iter,
+                                                                                 train_loss))
+            elif trainsize !=0:
+                valid_loss,validation_error,vp_error = valid_epoch(model,likelihood,output,data_val,mll)
+                valid_loss = valid_loss / data_val[0].size()[0]
+                print("Restart: {} Iter:{}/{} AVG Training Loss:{:.3f} AVG Valid Loss:{:.6f}".format(rest+1,it + 1,
+                                                                                   num_iter,
+                                                                                   train_loss,
+                                                                                   valid_loss))
+            if it ==0:
+                best_params_t = model.state_dict()
+                if trainsize !=0:
+                      min_valid_loss = valid_loss
+                      min_validation_error = validation_error
+                      min_validation_predictive_error = vp_error
+            if it >int(0.8*num_iter):
+                optimizer.param_groups[0]['lr'] =  learning_rate2 
+            
+            if it> 1  and train_loss < np.min(history_t['train_loss']):
+            #if it> 1  and valid_loss < np.min(history_t['valid_loss']):
+                min_valid_loss = valid_loss
+                min_validation_error = validation_error
+                min_validation_predictive_error = vp_error
+                min_train_loss = train_loss
+                n_opt_iter_t = it + 1
+                best_params_t = model.state_dict()
+            history_t['train_loss'].append(train_loss)
+            if trainsize !=0:
+                history_t['valid_loss'].append(valid_loss)
+        history_t ['min_valid_loss'] = min_valid_loss
+        history_t ['min_valid_error'] = min_validation_error
+        history_t ['min_validation_predictive_error'] = min_validation_predictive_error            
+        history_t ['min_train_loss'] = min_train_loss
+        history_t ['n_opt_iter_t'] = n_opt_iter_t
+        Results['restart{}'.format(rest+1)] = {'history_t':history_t,'best_params_t':best_params_t,'model':model,'likelihood':likelihood,
+                                         'configuration':{' lr': learning_rate,'max_iter':num_iter,'num_restarts':n_restarts}}
+        MODELS['restart{}'.format(rest+1)] = model
+        LIKELIHOODS['restart{}'.format(rest+1)] = likelihood
+    
+    Opt_model = {}
+    Opt_likelihood = {}
+    print()
+    print()
+    Opt_loss = torch.inf
+    for rest in range(0,n_restarts):
+        min_train_t_r = Results['restart{}'.format(rest+1)]['history_t']['min_train_loss']
+        min_val_error_t_r = Results['restart{}'.format(rest+1)]['history_t']['min_valid_error']
+        min_val_predictive_error_t_r = Results['restart{}'.format(rest+1)]['history_t']['min_validation_predictive_error']
+        if min_train_t_r<Opt_loss:
+            Opt_loss = min_train_t_r
+            Opt_model= MODELS['restart{}'.format(rest+1)]
+            Opt_likelihood = LIKELIHOODS['restart{}'.format(rest+1)]
+            min_val_error_t = min_val_error_t_r
+            min_val_predictive_error_t = min_val_predictive_error_t_r
+        print(' Restart:{}'.format(rest)+' Min train loss:{:.5f}'.format(Opt_loss))
+    Validation_Errors_t  = min_val_error_t
+    Validation_Predictive_Errors_t =     min_val_predictive_error_t
+    return MODELS,LIKELIHOODS,Results,Opt_model,Opt_likelihood,Validation_Errors_t,Validation_Predictive_Errors_t

@@ -13,7 +13,7 @@ def predGPind(test_x,likelihood,model):
     test_x = to_torch(test_x)
     Ntest = torch.Tensor.size(test_x,0)
     # Make predictions
-    opt_example(model)
+    #opt_example(model)
     model.eval()
     likelihood.eval()
     task_num = 24

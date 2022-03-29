@@ -37,11 +37,11 @@ def print_extra_methods(Stds_train_load,Ntest,Ntrain,WTrain,YTrain_24,YTest_24,X
     # NMF validation variance error============================================
     if 'RD' in DATA:
         OptValVar_F_std = to_torch(DATA['RD']['OptValVar_F'])
-        OptValVar_F_aux = OptValVar_F_std*stdgp
-        OptValVar_F = torch.tensor([a*b for a,b in zip(OptValVar_F_aux,S2norm)])
+        OptValVar_F = OptValVar_F_std*torch.pow(Stds_train_load,2)
+        #OptValVar_F = [torch.tensor(a*b) for a,b in zip(OptValVar_F_aux,S2norm)]
         OptTrainVar_F_std = to_torch(DATA['RD']['OptTrainVar_F'])
-        OptTrainVar_F_aux = OptTrainVar_F_std*stdgp
-        OptTrainVar_F = torch.tensor([a*b for a,b in zip(OptTrainVar_F_aux,S2norm)])
+        OptTrainVar_F = OptTrainVar_F_std*torch.pow(Stds_train_load,2)
+        #OptTrainVar_F = torch.tensor([a*b for a,b in zip(OptTrainVar_F_aux,S2norm)])
         
     # GP predictive validation variance error============================================
     if 'ValidationPredictiveErrors' in RESULTS:

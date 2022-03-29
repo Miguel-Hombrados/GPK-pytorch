@@ -101,6 +101,7 @@ folder_data_name = "BuenosResNMF"
 #LOCATIONS = ['ME','CT','NH','RI','NEMASSBOST','SEMASS','VT','WCMASS']
 
 datapath = Path.Path.joinpath(ProjectPath,"Data",folder_data_name)
+#datapath = Path.Path.joinpath(ProjectPath,"Data",folder_data_name,"NMF")
 DATAPATH = str(datapath)
 onlyfilesALL = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 

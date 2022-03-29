@@ -32,7 +32,20 @@ def fix_constraints(model,likelihood,kernel_type,num_task,method):
             model.covar_module.kernels[0].register_constraint("raw_outputscale", gpytorch.constraints.Interval(1e-5, 200))
             model.covar_module.kernels[0].base_kernel.register_constraint("raw_lengthscale", gpytorch.constraints.Interval(1,100))                  #3
             model.covar_module.kernels[1].register_constraint("raw_bias", gpytorch.constraints.Interval(1e-7, 1))   
-                
+    elif method == "gpk_sp":
+        if kernel_type == "rbf":  
+            model.likelihood.noise_covar.register_constraint("raw_noise", gpytorch.constraints.Interval(1e-4, 1))                                                            # 0.5    
+            model.covar_module.kernels[0].register_constraint("raw_outputscale", gpytorch.constraints.Interval(1e-5, 200))
+            model.covar_module.kernels[0].base_kernel.register_constraint("raw_lengthscale", gpytorch.constraints.Interval(1,100))                  #3
+            model.covar_module.kernels[1].register_constraint("raw_bias", gpytorch.constraints.Interval(1e-7, 1))   
+    elif method == "gpmt":
+        if kernel_type == "rbf":  
+            model.likelihood.register_constraint("raw_noise", gpytorch.constraints.Interval(1e-7, 1))     
+            model.likelihood.register_constraint("raw_task_noises", gpytorch.constraints.Interval(1e-4, 1))  
+            model.covar_module.covar_module_list[0].task_covar_module.register_constraint("raw_var", gpytorch.constraints.Interval(1e-4, 1))                     
+            model.covar_module.covar_module_list[0].data_covar_module.kernels[0].register_constraint("raw_outputscale", gpytorch.constraints.Interval(1e-5, 200))
+            model.covar_module.covar_module_list[0].data_covar_module.kernels[0].base_kernel.register_constraint("raw_lengthscale", gpytorch.constraints.Interval(1,100))                  #3
+            model.covar_module.covar_module_list[0].data_covar_module.kernels[1].register_constraint("raw_bias", gpytorch.constraints.Interval(1e-7, 1))   
 
 
                

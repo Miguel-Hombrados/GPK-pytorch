@@ -27,7 +27,7 @@ from matplotlib import pyplot as plt
 import pathlib as Path
 from os import listdir
 import pandas as pd
-
+#from  histogram_errors import  histogram_errors
 
 ProjectPath = Path.Path.cwd()
 utilsPath = Path.Path.joinpath(ProjectPath,"utils")
@@ -78,14 +78,16 @@ from correcting_factor_cov_gamma import correcting_factor_cov_gamma
 from predictive_variance_white import predictive_variance_white
 from  print_extra_methods import  print_extra_methods
 from GP24I_v4 import GP24I
+from GPMT import GPMT
 from to_torch import to_torch
+from predGPMT import predGPMT
 from print_results_ic import print_results_ic
 # #Load Power Load Data =========================================================
 # #==============================================================================
 method = "NMF"  # Full
 methodfile = 'NMF'
 kernel_type = "rbf"
-forecast_method = "gpk" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
+forecast_method = "gpmt" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
 option_lv = "gp_ind_ori" # gp_ind_ori/gpmt
 if forecast_method == "gpk":
     name_forecast_method = forecast_method +"_" +option_lv
@@ -139,7 +141,7 @@ for archivo in range(len(onlyfiles)):
     #[XTrain,XTest,YTrain_24,YTest_24] = outliers_removal(XTrain,XTest,YTrain_24,YTest_24)
     
 
-    # nn = 100
+    # nn = 10
     # YTrain_24_std = np.divide(YTrain_24,np.matlib.repmat(Stds_train_load.T,Ntrain,1))
     # YTrain24M  = YTrain_24[0:nn,:]
     # YTrainstd24M  = YTrain_24_std[0:nn,:]
@@ -174,6 +176,11 @@ for archivo in range(len(onlyfiles)):
         #[YPredictedS_24gpS, VPredictedS_24gpS,model,Opt_alpha, IC1, IC2, Errors, R2s, MAPEs,VarsALL,Errors_train,R2strain,Error2Validation,ErrorValidation,NoiseParameters,YvalsOpt,Y_predValsOpt,Covpredicted_Best,training_time,val_time,test_time] = GP24I(XTrainS,YTrainS,XTestS,kernel,TaskNumber,Alphas)   
     end = time.time() 
     training_time = end-start
+    #==========================================================================
+    if forecast_method == "gpmt": 
+        K = YTrain.size(1)
+        [M,L,RESULTS,model,like,_,_] = GPMT(XTrain,YTrain_24,24,kernel_type,opt_parameters)
+    end = time.time() 
     # TESTING==================================================================
     #==========================================================================
     start = time.time()  
@@ -185,6 +192,12 @@ for archivo in range(len(onlyfiles)):
     if forecast_method == "gpk": 
         [YPredictedS_KgpS,VPredicted_Kgp_S] = predGPind_ori(XTest_S,like,model)
         [_, YPredicted_24gp_K,VPredicted_24gp_K]=DeStandarizeData(YTest_K_S,YPredictedS_KgpS,scalerY_K,VPredicted_Kgp_S,Standarize = Stand)
+        #YPredictedS_KgpS,VPredicted_Kgp_S] = predGPK(YPredicted_24gp_K,VPredicted_Kgp_S,WTrain,Stds_train_load = Stds_train_load)
+    end = time.time() 
+    testing_time = end-start
+    if forecast_method == "gpmt": 
+        [YPredicted_24gp_S,VPredicted_24gp_S] = predGPMT(XTest_S,like,model)
+        [_, YPredicted_24gp_K,VPredicted_24gp_K]=DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)
         #YPredictedS_KgpS,VPredicted_Kgp_S] = predGPK(YPredicted_24gp_K,VPredicted_Kgp_S,WTrain,Stds_train_load = Stds_train_load)
     end = time.time() 
     testing_time = end-start
@@ -215,11 +228,15 @@ for archivo in range(len(onlyfiles)):
         #     VPredicted_24gp_white = predictive_variance_white(VPredicted_24gp_K,WTrain,NoiseEstimation_Variance3,S2norm)
         print_extra_methods(Stds_train_load,Ntest,Ntrain,WTrain,YTrain_24,YTest_24,XTrain_S,YPredicted_24gp_K,VPredicted_24gp_K,option_lv,scalerY_K,RESULTS,model,DATA)
     elif forecast_method == "gp_ind_ori":
-        [_, YPredicted_24gp,VPredicted_24gp]=DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)
+        [_, YPredicted_24gp,VPredicted_24gp] = DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)
         [ICs,ICs_lap1,ICs_lap2] = print_results_ic(YPredicted_24gp,YTest_24,VPredicted_24gp,"gp_ind_ori")
+    elif forecast_method == "gpmt":
+        [_, YPredicted_24gp,VPredicted_24gp] = DeStandarizeData(YTest_24_S,YPredicted_24gp_S,scalerY_24,VPredicted_24gp_S,Standarize = Stand)
+        [ICs,ICs_lap1,ICs_lap2] = print_results_ic(YPredicted_24gp,YTest_24,VPredicted_24gp,"gpmt")
     # METRICS==================================================================
     
-    
+    #histogram_errors("",YPredicted_24gp,YTest_24,VPredicted_24gp)
+
     mapes= MAPE(YTest_24,YPredicted_24gp)
     mapemedio = torch.mean(mapes)
 
@@ -229,22 +246,17 @@ for archivo in range(len(onlyfiles)):
     for samp in range(0,NTest):
         R2_all[samp,0] = r2_score(YTest_24[samp,:],YPredicted_24gp[samp,:])
     r2_24gp  = np.mean(R2_all)
-    
- 
+     
     # PRINT===================================================================
 
-    
-    
     print('Mape Medio 24GPs indep   ', mapemedio )
     print('R2 24GPs i:    ',r2_24gp)
-    
     
     if 'ValidationErrors' in RESULTS:
         Lval = RESULTS['ValidationErrors']
         Lval_tasks = [torch.mean(x) for x in Lval]
         Lval_mean = torch.mean(torch.tensor(Lval_tasks))
         print('Mean validation loss ',Lval_mean)
-    
     
     print('Training time:   ', training_time )
     print('Test time:   ',  testing_time)

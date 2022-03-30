@@ -105,8 +105,8 @@ datapath = Path.Path.joinpath(ProjectPath,"Data",folder_data_name)
 DATAPATH = str(datapath)
 onlyfilesALL = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 
-[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
-#[onlyfiles,opt_parameters, forecast_method, option_lv] = load_configuration_job_array(sys.argv,onlyfilesALL)
+#[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
+[onlyfiles,opt_parameters, forecast_method, option_lv,location,lr1,trainsize] = load_configuration_job_array(sys.argv,onlyfilesALL)
 
 
 gpytorch.settings.max_cg_iterations._set_value(10000)
@@ -280,7 +280,7 @@ for archivo in range(len(onlyfiles)):
     
     file_name = name_forecast_method+"_Stand_"+str(Stand)
     if 'INFO' in locals():
-        file_name = file_name="Exp_"+str(EXPERIMENT)
+        file_name = file_name="Exp_"+str(EXPERIMENT)+"_lr_"+str(lr1)+"+_trainsize_"+str(trainsize)+"_loc_"+location
     file_results = Path.Path.joinpath(ResultsPath,file_name+"_results")
     file_model = Path.Path.joinpath(ResultsPath,file_name+"_model")
     file_data = Path.Path.joinpath(ResultsPath,file_name+"_data")

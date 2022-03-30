@@ -22,14 +22,14 @@ def load_configuration_job_array(input_params,onlyfilesALL):
     dfcombinated = pd.DataFrame(product(*uniques), columns = df.columns)
     dfcombinated.dropna(inplace=True)
     index = sys.argv[1]
-    forecast_method = dfcombinated[index,'methods']
-    method_lv = dfcombinated[index,'method_lv']
-    opt_parameters['lr1'] = float(dfcombinated[index,'lr'])
-    opt_parameters['lr2'] = float(dfcombinated[index,'lr2'])
-    opt_parameters['n_restarts'] = int(dfcombinated[index,'nrestarts'])
-    opt_parameters['num_iter'] = int(dfcombinated[index,'niter'])
-    opt_parameters['trainsize'] = float(dfcombinated[index,'trainsize'])
-    location = "_"+str(dfcombinated[index,'location'])+"_"
+    forecast_method = dfcombinated['methods'][index-1]
+    method_lv = dfcombinated['method_lv'][index-1]
+    opt_parameters['lr1'] = float(dfcombinated['lr'][index-1])
+    opt_parameters['lr2'] = float(dfcombinated['lr2'][index-1])
+    opt_parameters['n_restarts'] = int(dfcombinated['nrestarts'][index-1])
+    opt_parameters['num_iter'] = int(dfcombinated['niter'][index-1])
+    opt_parameters['trainsize'] = float(dfcombinated['trainsize'][index-1])
+    location = "_"+str(dfcombinated['location'][index-1])+"_"
     onlyfiles = [f for f in onlyfilesALL if location in f ]
     
     print("Forecasting method:", forecast_method)

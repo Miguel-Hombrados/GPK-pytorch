@@ -21,7 +21,9 @@ def load_configuration_job_array(input_params,onlyfilesALL):
     uniques = [df[i].unique().tolist() for i in df.columns ]
     dfcombinated = pd.DataFrame(product(*uniques), columns = df.columns)
     dfcombinated.dropna(inplace=True)
+    dfcombinated = dfcombinated.reset_index()
     index = int(sys.argv[1])
+    print("indice",index)
     forecast_method = dfcombinated['methods'][index-1]
     method_lv = dfcombinated['method_lv'][index-1]
     opt_parameters['lr1'] = float(dfcombinated['lr'][index-1])

@@ -42,4 +42,4 @@ def load_configuration_job_array(input_params,onlyfilesALL):
     print("Number of Iterations:",opt_parameters['num_iter'])
     print("Training size:",opt_parameters['trainsize'])
 
-    return onlyfiles,opt_parameters, forecast_method, method_lv
+    return onlyfiles,opt_parameters, forecast_method, method_lv,location,opt_parameters['lr1'],opt_parameters['trainsize']

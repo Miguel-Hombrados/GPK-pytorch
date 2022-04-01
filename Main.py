@@ -89,10 +89,7 @@ methodfile = 'NMF'
 kernel_type = "rbf"
 forecast_method = "gpmt" # gp_ind_ori/gp_ind/gpk/gp_ind_laplace/gpmt
 option_lv = "gp_ind_ori" # gp_ind_ori/gpmt
-if forecast_method == "gpk":
-    name_forecast_method = forecast_method +"_" +option_lv
-else:
-    name_forecast_method = forecast_method
+
 EXPERIMENT = 3  # This has to do with the verion of the NMF generated
 TaskNumber = 24
 Stand = True
@@ -107,7 +104,10 @@ onlyfilesALL = [f for f in listdir(DATAPATH) if f.endswith('.pkl')]
 
 #[onlyfiles,opt_parameters,forecast_method] = load_configuration(sys.argv,onlyfilesALL,forecast_method)    
 [onlyfiles,opt_parameters, forecast_method, option_lv,location,lr1,trainsize] = load_configuration_job_array(sys.argv,onlyfilesALL)
-
+if forecast_method == "gpk":
+    name_forecast_method = forecast_method +"_" +option_lv
+else:
+    name_forecast_method = forecast_method
 
 gpytorch.settings.max_cg_iterations._set_value(10000)
 

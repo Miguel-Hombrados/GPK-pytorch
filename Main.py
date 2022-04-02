@@ -278,9 +278,9 @@ for archivo in range(len(onlyfiles)):
         Results['Wtrain'] = WTrain
     RESULTS[archivo] = Results
     
-    file_name = name_forecast_method+"_Stand_"+str(Stand)
+    file_name = "Exp_"+str(EXPERIMENT)+"_lr_"+str(lr1)+"+_trainsize_"+str(trainsize)+"_loc_"+location
     if 'INFO' in locals():
-        file_name = file_name="Exp_"+str(EXPERIMENT)+"_lr_"+str(lr1)+"+_trainsize_"+str(trainsize)+"_loc_"+location
+        file_name = "Exp_"+str(EXPERIMENT)+"_lr_"+str(lr1)+"+_trainsize_"+str(trainsize)+"_loc_"+location
     file_results = Path.Path.joinpath(ResultsPath,file_name+"_results")
     file_model = Path.Path.joinpath(ResultsPath,file_name+"_model")
     file_data = Path.Path.joinpath(ResultsPath,file_name+"_data")

@@ -18,8 +18,7 @@ def predGPMT(test_x,likelihood,model):
     likelihood.eval()
     task_num = 24
     
-    
-    with torch.no_grad(), gpytorch.settings.fast_pred_var():
+    with torch.no_grad(): #, gpytorch.settings.fast_pred_var():
         predictions = likelihood(model(test_x))
         mean = predictions.mean
         cov = predictions.covariance_matrix
